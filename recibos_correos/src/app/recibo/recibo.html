@@ -12,7 +12,8 @@
     </div>
   </div>
 
-  <div class="recibo-body">
+  <div id="recibo-pdf-content">
+    <div class="recibo-body">
     <!-- Formulario -->
     <div *ngIf="!reciboGenerado" class="no-print">
       <div class="info-row">
@@ -183,6 +184,8 @@
 
       <div class="no-print">
         <button class="btn-imprimir" (click)="imprimir()">🖨️ Imprimir Recibo</button>
+        
+        <button class="btn-whatsapp" (click)="enviarPorWhatsApp()">💬 Enviar por WhatsApp</button>
 
         <button
           class="btn-generar"

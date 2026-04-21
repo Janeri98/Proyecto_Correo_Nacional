@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-recibo',
@@ -10,6 +12,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./recibo.css'],
 })
 export class ReciboComponent {
+  @ViewChild('reciboContent', { static: false }) reciboContent!: ElementRef;
   recibo = {
     numero: '',
     oficina: '',
@@ -96,6 +99,37 @@ export class ReciboComponent {
 
   imprimir() {
     window.print();
+  }
+
+  enviarPorWhatsApp() {
+    if (!this.reciboGenerado) {
+      alert('Primero debe generar un recibo');
+      return;
+    }
+
+    // Construir el mensaje con los detalles del recibo
+    const mensaje = `🧾 *RECIBO DE PAGO - CORREOS DE HONDURAS*
+
+*Recibo Nº:* ${this.reciboGenerado.numero}
+*Oficina:* ${this.reciboGenerado.oficina}
+*Fecha:* ${this.reciboGenerado.fechaPago}
+*Remitente:* ${this.reciboGenerado.remitente}
+*Destinatario:* ${this.reciboGenerado.destinatario}
+*Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}
+*Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}
+*Peso:* ${this.reciboGenerado.peso || '0'} kg
+*TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+¡Gracias por usar los servicios de Correos de Honduras!`;
+
+    // Codificar el mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensaje);
+
+    // Generar el link de WhatsApp
+    const linkWhatsApp = `https://wa.me/?text=${mensajeCodificado}`;
+
+    // Abrir WhatsApp Web en una nueva pestaña
+    window.open(linkWhatsApp, '_blank');
   }
 
   nuevoRecibo() {
