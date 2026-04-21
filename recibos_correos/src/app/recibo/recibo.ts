@@ -34,7 +34,7 @@ export class ReciboComponent {
     'EMS Contado',
     'Cuentas X Cobrar(EMS)',
     'Canon Postal',
-    'Licencia De Opoeración ',
+    'Licencia De Operación ',
     'Fianza (Depósitos)',
     'Franqueo Contado',
     'Cuenta X Cobrar (Franqueo)',
