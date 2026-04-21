@@ -1,9 +1,9 @@
 <div class="recibo-container">
   <div class="recibo-header">
-    <div class="logo-container">
+    <div class="logo-container">        
       <div class="logo-icon">
-   <img src="/assets/cropped-PERFIL-WEB.png" alt="Logo" class="logo-img"> 
-  </div>
+        <img src="/assets/cropped-PERFIL-WEB.png" alt="Logo" class="logo-img" />
+      </div>
       <div>
         <h1>CORREOS DE HONDURAS</h1>
         <h2>RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"</h2>
@@ -21,45 +21,92 @@
       </div>
 
       <div class="form-group">
-        <label>Oficina, Agencia o Administración Postal</label>
-        <input type="text" class="form-control" [(ngModel)]="recibo.oficina" placeholder="Ej: Tegucigalpa Central">
+        <label>Oficina, Agencia o Administración Postal <span class="required">*</span></label>
+        <input
+          type="text"
+          class="form-control"
+          [ngClass]="{'error': errores['oficina']}"
+          [(ngModel)]="recibo.oficina"
+          placeholder="Ej: Tegucigalpa Central"
+        />
+        <span class="error-message" *ngIf="errores['oficina']">{{ errores['oficina'] }}</span>
       </div>
 
       <div class="form-group">
-        <label>Fecha de Pago</label>
-        <input type="date" class="form-control" [(ngModel)]="recibo.fecha">
+        <label>Fecha de Pago <span class="required">*</span></label>
+        <input
+          type="date"
+          class="form-control"
+          [ngClass]="{'error': errores['fecha']}"
+          [(ngModel)]="recibo.fecha"
+        />
+        <span class="error-message" *ngIf="errores['fecha']">{{ errores['fecha'] }}</span>
       </div>
 
       <div class="form-group">
-        <label>Remitente (Quien envía)</label>
-        <input type="text" class="form-control" [(ngModel)]="recibo.remitente" placeholder="Nombre completo">
+        <label>Remitente (Quien envía) <span class="required">*</span></label>
+        <input
+          type="text"
+          class="form-control"
+          [ngClass]="{'error': errores['remitente']}"
+          [(ngModel)]="recibo.remitente"
+          placeholder="Nombre completo"
+        />
+        <span class="error-message" *ngIf="errores['remitente']">{{ errores['remitente'] }}</span>
       </div>
 
       <div class="form-group">
-        <label>Destinatario (Quien recibe)</label>
-        <input type="text" class="form-control" [(ngModel)]="recibo.destinatario" placeholder="Nombre completo">
+        <label>Destinatario (Quien recibe) <span class="required">*</span></label>
+        <input
+          type="text"
+          class="form-control"
+          [ngClass]="{'error': errores['destinatario']}"
+          [(ngModel)]="recibo.destinatario"
+          placeholder="Nombre completo"
+        />
+        <span class="error-message" *ngIf="errores['destinatario']">{{ errores['destinatario'] }}</span>
       </div>
 
       <div class="form-group">
-        <label>Tipo de Servicio</label>
-        <select class="form-control" [(ngModel)]="recibo.tipoServicio">
-          <option *ngFor="let s of servicios" [value]="s">{{s}}</option>
+        <label>Tipo de Servicio <span class="required">*</span></label>
+        <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio">
+          <option *ngFor="let s of servicios" [value]="s">{{ s }}</option>
         </select>
+        <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
       </div>
 
       <div class="form-group">
         <label>Concepto / Descripción</label>
-        <input type="text" class="form-control" [(ngModel)]="recibo.concepto" placeholder="Descripción del envío">
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="recibo.concepto"
+          placeholder="Descripción del envío"
+        />
       </div>
 
       <div class="form-group">
         <label>Peso (kg)</label>
-        <input type="number" class="form-control" [(ngModel)]="recibo.peso" step="0.1" placeholder="0.0">
+        <input
+          type="number"
+          class="form-control"
+          [(ngModel)]="recibo.peso"
+          step="0.1"
+          placeholder="0.0"
+        />
       </div>
 
       <div class="form-group">
-        <label>Costo (Lempiras)</label>
-        <input type="number" class="form-control" [(ngModel)]="recibo.costo" step="0.01" placeholder="0.00">
+        <label>Costo (Lempiras) <span class="required">*</span></label>
+        <input
+          type="number"
+          class="form-control"
+          [ngClass]="{'error': errores['costo']}"
+          [(ngModel)]="recibo.costo"
+          step="0.01"
+          placeholder="0.00"
+        />
+        <span class="error-message" *ngIf="errores['costo']">{{ errores['costo'] }}</span>
       </div>
 
       <button class="btn-generar" (click)="generarRecibo()">Generar Recibo</button>
@@ -75,53 +122,75 @@
       <table class="table-recibo">
         <tr>
           <td>Oficina/Agencia:</td>
-          <td><strong>{{ reciboGenerado.oficina || 'No especificada' }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.oficina || 'No especificada' }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Fecha de Pago:</td>
-          <td><strong>{{ reciboGenerado.fechaPago }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.fechaPago }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Remitente:</td>
-          <td><strong>{{ reciboGenerado.remitente || 'No especificado' }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.remitente || 'No especificado' }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Destinatario:</td>
-          <td><strong>{{ reciboGenerado.destinatario || 'No especificado' }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.destinatario || 'No especificado' }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Tipo de Servicio:</td>
-          <td><strong>{{ reciboGenerado.tipoServicio }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.tipoServicio }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Concepto:</td>
-          <td><strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong>
+          </td>
         </tr>
         <tr>
           <td>Peso:</td>
-          <td><strong>{{ reciboGenerado.peso || '0' }} kg</strong></td>
+          <td>
+            <strong>{{ reciboGenerado.peso || '0' }} kg</strong>
+          </td>
         </tr>
         <tr class="total-row">
           <td>TOTAL A PAGAR:</td>
-          <td><strong>L. {{ reciboGenerado.total | number:'1.2-2' }}</strong></td>
+          <td>
+            <strong>L. {{ reciboGenerado.total | number: '1.2-2' }}</strong>
+          </td>
         </tr>
       </table>
 
       <div class="firma">
         <div class="firma-linea">
-          <hr>
+          <hr />
           <p>Firma del Cliente</p>
         </div>
         <div class="firma-linea">
-          <hr>
+          <hr />
           <p>Sello y Firma del Cajero</p>
         </div>
       </div>
 
       <div class="no-print">
         <button class="btn-imprimir" (click)="imprimir()">🖨️ Imprimir Recibo</button>
-        
-        <button class="btn-generar" style="margin-top: 10px; background: #6c757d;" (click)="nuevoRecibo()">➕ Nuevo Recibo</button>
+
+        <button
+          class="btn-generar"
+          style="margin-top: 10px; background: #6c757d"
+          (click)="nuevoRecibo()"
+        >
+          ➕ Nuevo Recibo
+        </button>
       </div>
     </div>
   </div>

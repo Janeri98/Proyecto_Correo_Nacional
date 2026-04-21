@@ -24,6 +24,7 @@ export class ReciboComponent {
 
   reciboGenerado: any = null;
   numeroRecibo = Math.floor(Math.random() * 1000000);
+  errores: { [key: string]: string } = {};
 
   servicios = [
     'Apartado Postal',
@@ -55,7 +56,36 @@ export class ReciboComponent {
     'Otros ingresos por:',
   ];
 
+  validarCampos(): boolean {
+    this.errores = {};
+
+    if (!this.recibo.oficina || this.recibo.oficina.trim() === '') {
+      this.errores['oficina'] = 'La oficina es requerida';
+    }
+    if (!this.recibo.fecha || this.recibo.fecha.trim() === '') {
+      this.errores['fecha'] = 'La fecha es requerida';
+    }
+    if (!this.recibo.remitente || this.recibo.remitente.trim() === '') {
+      this.errores['remitente'] = 'El remitente es requerido';
+    }
+    if (!this.recibo.destinatario || this.recibo.destinatario.trim() === '') {
+      this.errores['destinatario'] = 'El destinatario es requerido';
+    }
+    if (!this.recibo.tipoServicio || this.recibo.tipoServicio.trim() === '') {
+      this.errores['tipoServicio'] = 'Seleccione un tipo de servicio';
+    }
+    if (!this.recibo.costo || this.recibo.costo <= 0) {
+      this.errores['costo'] = 'El costo debe ser mayor a 0';
+    }
+
+    return Object.keys(this.errores).length === 0;
+  }
+
   generarRecibo() {
+    if (!this.validarCampos()) {
+      return;
+    }
+    
     this.reciboGenerado = {
       ...this.recibo,
       numero: this.numeroRecibo,
@@ -82,5 +112,6 @@ export class ReciboComponent {
     };
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
+    this.errores = {};
   }
 }
