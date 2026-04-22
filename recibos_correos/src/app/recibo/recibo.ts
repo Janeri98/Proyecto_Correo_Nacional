@@ -13,6 +13,7 @@ import jsPDF from 'jspdf';
 })
 export class ReciboComponent {
   @ViewChild('reciboContent', { static: false }) reciboContent!: ElementRef;
+  
   recibo = {
     numero: '',
     oficina: '',
@@ -22,7 +23,8 @@ export class ReciboComponent {
     concepto: '',
     peso: null,
     costo: null,
-    tipoServicio: 'Correo Normal',
+    tipoServicio: '',
+    tipoPago: '',  // NUEVO: Tipo de pago
   };
 
   reciboGenerado: any = null;
@@ -56,8 +58,11 @@ export class ReciboComponent {
     '62255 - Gastos Financieros',
     '44116 - Sobres 1er dia',
     '49999 - Alquiler',
-    'Otros  ingresos por:',
+    'Otros ingresos por:',
   ];
+
+  // NUEVO: Tipos de pago
+  tiposPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
 
   validarCampos(): boolean {
     this.errores = {};
@@ -79,6 +84,10 @@ export class ReciboComponent {
     }
     if (!this.recibo.costo || this.recibo.costo <= 0) {
       this.errores['costo'] = 'El costo debe ser mayor a 0';
+    }
+    // NUEVA VALIDACIÓN: Tipo de pago
+    if (!this.recibo.tipoPago || this.recibo.tipoPago.trim() === '') {
+      this.errores['tipoPago'] = 'Seleccione un tipo de pago';
     }
 
     return Object.keys(this.errores).length === 0;
@@ -116,8 +125,9 @@ export class ReciboComponent {
 *Remitente:* ${this.reciboGenerado.remitente}
 *Destinatario:* ${this.reciboGenerado.destinatario}
 *Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}
+*Tipo de Pago:* ${this.reciboGenerado.tipoPago || 'No especificado'}
 *Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}
-*Peso:* ${this.reciboGenerado.peso || '0'} kg
+*Peso:* ${this.reciboGenerado.peso || '0'} g
 *TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 
 ¡Gracias por usar los servicios de Correos de Honduras!`;
@@ -142,7 +152,8 @@ export class ReciboComponent {
       concepto: '',
       peso: null,
       costo: null,
-      tipoServicio: 'Correo Normal',
+      tipoServicio: '',
+      tipoPago: '',  // NUEVO
     };
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
