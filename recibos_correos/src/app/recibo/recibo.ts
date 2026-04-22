@@ -30,33 +30,33 @@ export class ReciboComponent {
   errores: { [key: string]: string } = {};
 
   servicios = [
-    'Apartado Postal',
-    'Sellos Postales',
-    'Sellos Filatelicos',
-    'Depósito Cta.Corriente(Filatelistas)', 
-    'EMS Contado',
-    'Cuentas X Cobrar(EMS)',
-    'Canon Postal',
-    'Licencia De Operación ',
-    'Fianza (Depósitos)',
-    'Franqueo Contado',
-    'Cuenta X Cobrar (Franqueo)',
-    'Maquina Franqueadora',
-    'Ventas Varias ',
-    'Cuentas X Cobrar Varias',
-    'Entrega de paquetes postal',
-    'Entrega de pequeño paquete postal ',
-    'Certificado Nacional',
-    'Certificado Internacional ',
-    'Servicio Express',
-    'Acuse de Recibo',
-    'Sacas Vacías',
-    'Superficie',
-    'Productos Financieros',
-    'Gastos Financieros',
-    'Sobres 1er dia',
-    'Alquiler',
-    'Otros ingresos por:',
+    '45211 - Apartado Postal',
+    '44105 - Sellos Postales',
+    '45105 - Sellos Filatelicos',
+    '21102 - Depósito Cta.Corriente(Filatelistas)',
+    '45212 - EMS Contado',
+    '12200 - Cuentas X Cobrar(EMS)',
+    '45214 - Canon Postal',
+    '45214 - Licencia De Operación ',
+    '25100 - Fianza (Depósitos)',
+    '45215 - Franqueo Contado',
+    '12100 - Cuenta X Cobrar (Franqueo)',
+    '45216 - Maquina Franqueadora',
+    '45106 - Ventas Varias ',
+    '12300 - Cuentas X Cobrar Varias',
+    '45299 - Entrega de paquetes postal',
+    '45299 - Entrega de pequeño paquete postal ',
+    '44113 - Certificado Nacional',
+    '44114 - Certificado Internacional ',
+    '44112 - Servicio Express',
+    '44115 - Acuse de Recibo',
+    '49999 - Sacas Vacías',
+    '45299 - Superficie',
+    '49999 - Productos Financieros',
+    '62255 - Gastos Financieros',
+    '44116 - Sobres 1er dia',
+    '49999 - Alquiler',
+    'Otros  ingresos por:',
   ];
 
   validarCampos(): boolean {
@@ -88,7 +88,7 @@ export class ReciboComponent {
     if (!this.validarCampos()) {
       return;
     }
-    
+
     this.reciboGenerado = {
       ...this.recibo,
       numero: this.numeroRecibo,
