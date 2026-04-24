@@ -98,9 +98,19 @@
               type="number"
               class="form-control"
               [(ngModel)]="recibo.peso"
+              (input)="calcularCosto()"
               step="0.1"
               placeholder="0.0"
             />
+          </div>
+
+          <div class="form-group">
+            <label>Grupo Geográfico <span class="required">*</span></label>
+            <select class="form-control" [ngClass]="{'error': errores['grupo']}" [(ngModel)]="recibo.grupo" (change)="calcularCosto()">
+              <option value="">Seleccione...</option>
+              <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
+            </select>
+            <span class="error-message" *ngIf="errores['grupo']">{{ errores['grupo'] }}</span>
           </div>
 
           <div class="form-group">
@@ -110,6 +120,7 @@
               class="form-control"
               [ngClass]="{'error': errores['costo']}"
               [(ngModel)]="recibo.costo"
+              readonly
               step="0.01"
               placeholder="0.00"
             />
@@ -166,6 +177,10 @@
             <td><strong>{{ reciboGenerado.tipoPago || 'No especificado' }}</strong></td>
           </tr>
           <tr>
+            <td>Grupo Geográfico:</td>
+            <td><strong>{{ grupos.find(g => g.id === reciboGenerado.grupo)?.nombre || 'No especificado' }}</strong></td>
+          </tr>
+          <tr>
             <td>Concepto:</td>
             <td><strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong></td>
           </tr>
@@ -192,7 +207,8 @@
 
         <div class="no-print">
           <button class="btn-imprimir" (click)="imprimir()">🖨️ Imprimir Recibo</button>
-          <button class="btn-whatsapp" (click)="enviarPorWhatsApp()">💬 Enviar por WhatsApp</button>
+          <button class="btn-descargar-pdf" (click)="generarPDF()">📥 Descargar PDF</button>
+          <button class="btn-whatsapp" (click)="enviarPorWhatsApp()">💬 Enviar PDF por WhatsApp</button>
           <button class="btn-generar" style="margin-top: 10px; background: #6c757d" (click)="nuevoRecibo()">
             ➕ Nuevo Recibo
           </button>
