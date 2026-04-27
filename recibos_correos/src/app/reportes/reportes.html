@@ -1,0 +1,286 @@
+<div class="container-fluid mt-4">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="text-primary mb-4">
+        <i class="bi bi-graph-up"></i> Reportes de Ventas
+      </h1>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Filtros de Reporte</h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Tipo de Reporte</label>
+          <select
+            class="form-select"
+            [(ngModel)]="tipoReporte"
+            (change)="cargarReporte()"
+          >
+            <option value="diario">Reporte Diario</option>
+            <option value="mensual">Reporte Mensual</option>
+            <option value="personalizado">Período Personalizado</option>
+          </select>
+        </div>
+
+        <!-- Filtro Diario -->
+        <div class="col-md-4" *ngIf="tipoReporte === 'diario'">
+          <label class="form-label fw-bold">Selecciona una Fecha</label>
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="fechaSeleccionada"
+            (change)="cargarReporte()"
+          />
+        </div>
+
+        <!-- Filtro Mensual -->
+        <div class="col-md-4" *ngIf="tipoReporte === 'mensual'">
+          <label class="form-label fw-bold">Selecciona un Mes</label>
+          <input
+            type="month"
+            class="form-control"
+            [(ngModel)]="monthSeleccionado"
+            (change)="cargarReporte()"
+          />
+        </div>
+
+        <!-- Filtro Personalizado -->
+        <ng-container *ngIf="tipoReporte === 'personalizado'">
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Fecha Inicio</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="fechaInicio"
+              (change)="cargarReporte()"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-bold">Fecha Fin</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="fechaFin"
+              (change)="cargarReporte()"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-bold">&nbsp;</label>
+            <button
+              class="btn btn-primary w-100"
+              (click)="cargarReporte()"
+            >
+              Filtrar
+            </button>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Opciones de Visualización -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              [(ngModel)]="mostrarTabla"
+              id="mostrarTabla"
+            />
+            <label class="form-check-label" for="mostrarTabla">
+              Mostrar Tabla
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              [(ngModel)]="mostrarGraficos"
+              id="mostrarGraficos"
+            />
+            <label class="form-check-label" for="mostrarGraficos">
+              Mostrar Gráficos
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6 text-end">
+          <button
+            class="btn btn-danger me-2"
+            (click)="exportarPDF()"
+            title="Descargar PDF"
+          >
+            <i class="bi bi-file-pdf"></i> Exportar PDF
+          </button>
+          <button
+            class="btn btn-success"
+            (click)="exportarExcel()"
+            title="Descargar Excel"
+          >
+            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar Excel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen de Totales -->
+  <div class="row mb-4" #reporteContent>
+    <div class="col-md-6">
+      <div class="card bg-info text-white shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total de Transacciones</h5>
+          <h2 class="display-4 fw-bold">{{ totalVentas }}</h2>
+          <p class="card-text">Recibos generados</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card bg-success text-white shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title">Monto Total</h5>
+          <h2 class="display-4 fw-bold">{{ simboloMoneda }}{{ totalMonto.toFixed(2) }}</h2>
+          <p class="card-text">Ingresos totales</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Ventas Detalladas -->
+  <div class="card mb-4 shadow-sm" *ngIf="mostrarTabla && ventasTabla.length > 0">
+    <div class="card-header bg-secondary text-white">
+      <h5 class="mb-0">Detalle de Ventas</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Fecha</th>
+              <th>Servicio</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-right">Monto</th>
+              <th>Oficina</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let venta of ventasTabla">
+              <td>{{ venta.fecha }}</td>
+              <td>{{ venta.servicio }}</td>
+              <td class="text-center">{{ venta.cantidad }}</td>
+              <td class="text-right">{{ simboloMoneda }}{{ venta.monto.toFixed(2) }}</td>
+              <td>{{ venta.oficina }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="mostrarTabla && ventasTabla.length === 0" class="alert alert-info">
+    No hay datos de ventas para el período seleccionado.
+  </div>
+
+  <!-- Gráficos y Resúmenes -->
+  <div
+    class="row mb-4"
+    *ngIf="mostrarGraficos"
+  >
+    <!-- Resumen por Servicio -->
+    <div class="col-md-6" *ngIf="resumenServicio.length > 0">
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">Ventas por Servicio</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Servicio</th>
+                  <th class="text-center">Cantidad</th>
+                  <th class="text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of resumenServicio">
+                  <td>{{ item.servicio }}</td>
+                  <td class="text-center">
+                    <span class="badge bg-info">{{ item.cantidad }}</span>
+                  </td>
+                  <td class="text-right">{{ simboloMoneda }}{{ item.monto.toFixed(2) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen por Oficina -->
+    <div class="col-md-6" *ngIf="resumenOficina.length > 0">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Ventas por Oficina</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Oficina</th>
+                  <th class="text-center">Cantidad</th>
+                  <th class="text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of resumenOficina">
+                  <td>{{ item.oficina }}</td>
+                  <td class="text-center">
+                    <span class="badge bg-success">{{ item.cantidad }}</span>
+                  </td>
+                  <td class="text-right">{{ simboloMoneda }}{{ item.monto.toFixed(2) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Ventas por Día (solo para reportes mensuales o personalizados) -->
+  <div
+    class="card shadow-sm"
+    *ngIf="mostrarGraficos && reportePorDia.length > 0 && tipoReporte !== 'diario'"
+  >
+    <div class="card-header bg-secondary text-white">
+      <h5 class="mb-0">Ventas por Día</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Fecha</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-right">Monto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of reportePorDia">
+              <td>{{ item.fecha }}</td>
+              <td class="text-center">
+                <span class="badge bg-primary">{{ item.cantidad }}</span>
+              </td>
+              <td class="text-right">{{ simboloMoneda }}{{ item.monto.toFixed(2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

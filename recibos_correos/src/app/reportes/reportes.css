@@ -1,0 +1,140 @@
+.container-fluid {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.card {
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  padding: 15px 20px;
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  padding: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.table tbody td {
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.badge {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.form-label {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #428bca;
+  box-shadow: 0 0 0 0.2rem rgba(66, 139, 202, 0.25);
+}
+
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 1.5rem;
+}
+
+h5 {
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.display-4 {
+  font-weight: 700;
+  color: inherit;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.form-check {
+  padding-top: 0.5rem;
+}
+
+.form-check-label {
+  color: #495057;
+  cursor: pointer;
+  margin-left: 4px;
+  user-select: none;
+}
+
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body {
+    padding: 10px !important;
+  }
+
+  .table {
+    font-size: 0.85rem;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 8px;
+  }
+
+  .display-4 {
+    font-size: 2rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+}

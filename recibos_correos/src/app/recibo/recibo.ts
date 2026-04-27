@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RecibosStorageService } from '../services/recibos-storage.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -73,6 +74,8 @@ export class ReciboComponent {
     { id: 'grupo4', nombre: 'Europa (GRUPO IV)' },
     { id: 'grupo5', nombre: 'Resto del Mundo (GRUPO V)' },
   ];
+
+  constructor(private recibosStorage: RecibosStorageService) {}
 
   // NUEVO: Tabla de precios por rango de peso y grupo geográfico
   tablaPrecios = {
@@ -211,6 +214,9 @@ export class ReciboComponent {
       fechaPago: this.recibo.fecha || new Date().toISOString().split('T')[0],
       total: this.recibo.costo || 0,
     };
+
+    // NUEVO: Guardar el recibo en el almacenamiento
+    this.recibosStorage.guardarRecibo(this.reciboGenerado);
   }
 
   imprimir() {
