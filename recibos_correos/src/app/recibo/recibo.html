@@ -45,6 +45,7 @@
               class="form-control"
               [ngClass]="{'error': errores['fecha']}"
               [(ngModel)]="recibo.fecha"
+              (change)="validarFecha()"
             />
             <span class="error-message" *ngIf="errores['fecha']">{{ errores['fecha'] }}</span>
           </div>

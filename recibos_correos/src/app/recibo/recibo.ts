@@ -66,6 +66,35 @@ export class ReciboComponent {
   // NUEVO: Tipos de pago
   tiposPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
 
+  // NUEVO: Oficinas, Agencias y Administraciones Postales de Honduras
+  oficinas = [
+    '🏢 Sede Central (Administración Principal) - Tegucigalpa',
+    '📍 Atlántida - La Ceiba (Oficina Principal)',
+    '📍 Choluteca - Choluteca (Oficina Principal)',
+    '📍 Colón - Trujillo (Oficina Principal)',
+    '📍 Comayagua - Comayagua (Oficina Principal)',
+    '📍 Copán - Santa Rosa de Copán (Oficina Principal)',
+    '📍 Cortés - San Pedro Sula (Oficina Principal)',
+    '📍 Cortés - Puerto Cortés (Agencia)',
+    '📍 El Paraíso - Danlí (Oficina Principal)',
+    '📍 El Paraíso - Yuscaran (Agencia)',
+    '📍 Francisco Morazán - Tegucigalpa Centro Cívico Gubernamental',
+    '📍 Francisco Morazán - Tegucigalpa Universidad',
+    '📍 Gracias a Dios - Puerto Lempira (Oficina Principal)',
+    '📍 Intibucá - La Esperanza (Oficina Principal)',
+    '📍 Islas de la Bahía - Roatán (Agencia)',
+    '📍 Islas de la Bahía - Utila (Agencia)',
+    '📍 La Paz - La Paz (Oficina Principal)',
+    '📍 Lempira - Gracias (Oficina Principal)',
+    '📍 Ocotepeque - Nueva Ocotepeque (Oficina Principal)',
+    '📍 Olancho - Juticalpa (Oficina Principal)',
+    '📍 Olancho - Catacamas (Agencia)',
+    '📍 Santa Bárbara - Santa Bárbara (Oficina Principal)',
+    '📍 Valle - Nacaome (Oficina Principal)',
+    '📍 Yoro - Yoro (Oficina Principal)',
+    '📍 Yoro - El Progreso (Agencia)',
+  ];
+
   // NUEVO: Grupos geográficos
   grupos = [
     { id: 'grupo1', nombre: 'Centro América (GRUPO I)' },
@@ -120,6 +149,25 @@ export class ReciboComponent {
       '8501-9000': 3080, '9001-9500': 3220, '9501-10000': 3360
     }
   };
+
+  // NUEVA FUNCIÓN: Validar fecha en tiempo real
+  validarFecha() {
+    if (!this.recibo.fecha || this.recibo.fecha.trim() === '') {
+      this.errores['fecha'] = 'La fecha es requerida';
+      return;
+    }
+
+    const fechaIngresada = new Date(this.recibo.fecha);
+    const fechaHoy = new Date();
+    fechaHoy.setHours(0, 0, 0, 0);
+
+    if (fechaIngresada < fechaHoy) {
+      this.errores['fecha'] = 'La fecha de pago debe ser hoy o posterior. No puede ser una fecha anterior.';
+      alert('⚠️ Error: La fecha de pago es anterior a hoy. Por favor, seleccione la fecha de hoy (28 de abril) o una posterior.');
+    } else {
+      delete this.errores['fecha']; // Limpiar error si la fecha es válida
+    }
+  }
 
   // NUEVO: Función para calcular costo automáticamente
   calcularCosto() {
@@ -178,6 +226,16 @@ export class ReciboComponent {
     }
     if (!this.recibo.fecha || this.recibo.fecha.trim() === '') {
       this.errores['fecha'] = 'La fecha es requerida';
+    } else {
+      // NUEVA VALIDACIÓN: Verificar que la fecha no sea anterior a hoy
+      const fechaIngresada = new Date(this.recibo.fecha);
+      const fechaHoy = new Date();
+      fechaHoy.setHours(0, 0, 0, 0); // Establecer hora a medianoche para comparar solo la fecha
+      
+      if (fechaIngresada < fechaHoy) {
+        this.errores['fecha'] = 'La fecha de pago debe ser hoy o posterior. No puede ser una fecha anterior.';
+        alert('⚠️ Error: La fecha de pago es anterior a hoy. Por favor, seleccione la fecha de hoy (28 de abril) o una posterior.');
+      }
     }
     if (!this.recibo.remitente || this.recibo.remitente.trim() === '') {
       this.errores['remitente'] = 'El remitente es requerido';
