@@ -32,6 +32,7 @@ export class ReciboComponent {
   reciboGenerado: any = null;
   numeroRecibo = Math.floor(Math.random() * 1000000);
   errores: { [key: string]: string } = {};
+  fechaHoy: string = ''; // NUEVO: Fecha de hoy únicamente permitida
 
   servicios = [
     '45211 - Apartado Postal',
@@ -66,35 +67,6 @@ export class ReciboComponent {
   // NUEVO: Tipos de pago
   tiposPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
 
-  // NUEVO: Oficinas, Agencias y Administraciones Postales de Honduras
-  oficinas = [
-    '🏢 Sede Central (Administración Principal) - Tegucigalpa',
-    '📍 Atlántida - La Ceiba (Oficina Principal)',
-    '📍 Choluteca - Choluteca (Oficina Principal)',
-    '📍 Colón - Trujillo (Oficina Principal)',
-    '📍 Comayagua - Comayagua (Oficina Principal)',
-    '📍 Copán - Santa Rosa de Copán (Oficina Principal)',
-    '📍 Cortés - San Pedro Sula (Oficina Principal)',
-    '📍 Cortés - Puerto Cortés (Agencia)',
-    '📍 El Paraíso - Danlí (Oficina Principal)',
-    '📍 El Paraíso - Yuscaran (Agencia)',
-    '📍 Francisco Morazán - Tegucigalpa Centro Cívico Gubernamental',
-    '📍 Francisco Morazán - Tegucigalpa Universidad',
-    '📍 Gracias a Dios - Puerto Lempira (Oficina Principal)',
-    '📍 Intibucá - La Esperanza (Oficina Principal)',
-    '📍 Islas de la Bahía - Roatán (Agencia)',
-    '📍 Islas de la Bahía - Utila (Agencia)',
-    '📍 La Paz - La Paz (Oficina Principal)',
-    '📍 Lempira - Gracias (Oficina Principal)',
-    '📍 Ocotepeque - Nueva Ocotepeque (Oficina Principal)',
-    '📍 Olancho - Juticalpa (Oficina Principal)',
-    '📍 Olancho - Catacamas (Agencia)',
-    '📍 Santa Bárbara - Santa Bárbara (Oficina Principal)',
-    '📍 Valle - Nacaome (Oficina Principal)',
-    '📍 Yoro - Yoro (Oficina Principal)',
-    '📍 Yoro - El Progreso (Agencia)',
-  ];
-
   // NUEVO: Grupos geográficos
   grupos = [
     { id: 'grupo1', nombre: 'Centro América (GRUPO I)' },
@@ -104,7 +76,12 @@ export class ReciboComponent {
     { id: 'grupo5', nombre: 'Resto del Mundo (GRUPO V)' },
   ];
 
-  constructor(private recibosStorage: RecibosStorageService) {}
+  constructor(private recibosStorage: RecibosStorageService) {
+    // NUEVO: Inicializar fecha a hoy únicamente
+    const hoy = new Date();
+    this.fechaHoy = hoy.toISOString().split('T')[0];
+    this.recibo.fecha = this.fechaHoy; // Pre-llenar con la fecha de hoy
+  }
 
   // NUEVO: Tabla de precios por rango de peso y grupo geográfico
   tablaPrecios = {
@@ -157,13 +134,12 @@ export class ReciboComponent {
       return;
     }
 
-    const fechaIngresada = new Date(this.recibo.fecha);
-    const fechaHoy = new Date();
-    fechaHoy.setHours(0, 0, 0, 0);
-
-    if (fechaIngresada < fechaHoy) {
-      this.errores['fecha'] = 'La fecha de pago debe ser hoy o posterior. No puede ser una fecha anterior.';
-      alert('⚠️ Error: La fecha de pago es anterior a hoy. Por favor, seleccione la fecha de hoy (28 de abril) o una posterior.');
+    // Comparar directamente con el string ISO para evitar problemas de zona horaria
+    if (this.recibo.fecha !== this.fechaHoy) {
+      const fechaHoyObj = new Date();
+      const fechaFormato = fechaHoyObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      this.errores['fecha'] = `Solo se permite la fecha de hoy (${fechaFormato})`;
+      this.recibo.fecha = this.fechaHoy; // Auto-corregir a la fecha de hoy
     } else {
       delete this.errores['fecha']; // Limpiar error si la fecha es válida
     }
@@ -227,14 +203,14 @@ export class ReciboComponent {
     if (!this.recibo.fecha || this.recibo.fecha.trim() === '') {
       this.errores['fecha'] = 'La fecha es requerida';
     } else {
-      // NUEVA VALIDACIÓN: Verificar que la fecha no sea anterior a hoy
-      const fechaIngresada = new Date(this.recibo.fecha);
-      const fechaHoy = new Date();
-      fechaHoy.setHours(0, 0, 0, 0); // Establecer hora a medianoche para comparar solo la fecha
-      
-      if (fechaIngresada < fechaHoy) {
-        this.errores['fecha'] = 'La fecha de pago debe ser hoy o posterior. No puede ser una fecha anterior.';
-        alert('⚠️ Error: La fecha de pago es anterior a hoy. Por favor, seleccione la fecha de hoy (28 de abril) o una posterior.');
+      // NUEVA VALIDACIÓN: Verificar que la fecha sea exactamente hoy
+      if (this.recibo.fecha !== this.fechaHoy) {
+        const fechaHoyObj = new Date();
+        const fechaFormato = fechaHoyObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        this.errores['fecha'] = `Solo se permite la fecha de hoy (${fechaFormato})`;
+        this.recibo.fecha = this.fechaHoy; // Auto-corregir a la fecha de hoy
+      } else {
+        delete this.errores['fecha'];
       }
     }
     if (!this.recibo.remitente || this.recibo.remitente.trim() === '') {
