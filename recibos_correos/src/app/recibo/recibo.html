@@ -4,6 +4,7 @@
       <div class="logo-icon">
         <img src="assets/Imagen.png" alt="Logo Correos de Honduras" class="logo-img">
       </div>
+
       <div>
         <h3>CORREOS DE HONDURAS</h3>
         <h6>RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"</h6>
@@ -78,11 +79,21 @@
 
           <div class="form-group full-width">
             <label>Tipo de Servicio <span class="required">*</span></label>
-            <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio">
+            <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio" (change)="onServicioChange()">
               <option value="">Seleccione un servicio...</option>
               <option *ngFor="let s of servicios" [value]="s">{{ s }}</option>
             </select>
             <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
+          </div>
+
+          <!-- NUEVO CAMPO: Seleccionar precio de sello (solo para Sellos Postales y Filatelicos) -->
+          <div class="form-group" *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
+            <label>Precio del Sello (L.) <span class="required">*</span></label>
+            <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello" (change)="calcularCosto()">
+              <option value="null">Seleccione un precio...</option>
+              <option *ngFor="let precio of preciosSello" [value]="precio">L. {{ precio }}</option>
+            </select>
+            <span class="error-message" *ngIf="errores['precioSello']">{{ errores['precioSello'] }}</span>
           </div>
 
           <div class="form-group">
