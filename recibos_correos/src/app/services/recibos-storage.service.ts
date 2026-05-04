@@ -56,18 +56,25 @@ export class RecibosStorageService {
     this.recibosSubject.next([]);
   }
 
+  private obtenerFechaRecibo(recibo: Recibo): string {
+    return recibo.fechaPago || recibo.fecha;
+  }
+
   obtenerRecibosPorFecha(fecha: string): Recibo[] {
-    return this.recibosSubject.value.filter(r => r.fecha === fecha);
+    return this.recibosSubject.value.filter(r => this.obtenerFechaRecibo(r) === fecha);
   }
 
   obtenerRecibosPorMes(year: number, month: number): Recibo[] {
     const mesAno = `${year}-${String(month).padStart(2, '0')}`;
-    return this.recibosSubject.value.filter(r => r.fecha.startsWith(mesAno));
+    return this.recibosSubject.value.filter(r => this.obtenerFechaRecibo(r).startsWith(mesAno));
   }
 
   obtenerRecibosPorPeriodo(fechaInicio: string, fechaFin: string): Recibo[] {
     return this.recibosSubject.value.filter(
-      r => r.fecha >= fechaInicio && r.fecha <= fechaFin
+      r => {
+        const fecha = this.obtenerFechaRecibo(r);
+        return fecha >= fechaInicio && fecha <= fechaFin;
+      }
     );
   }
 }

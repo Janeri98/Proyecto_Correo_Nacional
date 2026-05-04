@@ -167,25 +167,54 @@ export class ReciboComponent {
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
 
     if (esSellos) {
-      // Para sellos: sumar precio del sello + costo del peso
+      // Para sellos: sumar precio del sello + costo del peso según tabla geográfica
       let costoTotal = 0;
+      const precioSelloSeleccionado = Number(this.recibo.precioSello) || 0;
       
       // Agregar precio del sello si está seleccionado
-      if (this.recibo.precioSello && this.recibo.precioSello > 0) {
-        costoTotal += this.recibo.precioSello;
+      if (precioSelloSeleccionado > 0) {
+        costoTotal += precioSelloSeleccionado;
       }
       
-      // Agregar costo del peso si está ingresado
+      // Agregar costo del peso según la tabla geográfica
       if (this.recibo.peso && this.recibo.peso > 0) {
-        // Para sellos, usamos una tarifa fija simple basada en peso
-        // 1-20g: 5, 21-50g: 10, 51-100g: 20, 101-250g: 30, 251+g: 50
-        let costoWeight = 0;
-        if (this.recibo.peso <= 20) costoWeight = 5;
-        else if (this.recibo.peso <= 50) costoWeight = 10;
-        else if (this.recibo.peso <= 100) costoWeight = 20;
-        else if (this.recibo.peso <= 250) costoWeight = 30;
-        else costoWeight = 50;
-        costoTotal += costoWeight;
+        const peso = this.recibo.peso;
+        const grupo = this.recibo.grupo;
+        const precios = this.tablaPrecios[grupo as keyof typeof this.tablaPrecios];
+        
+        // Encontrar el rango que corresponde al peso
+        let rango = '';
+        if (peso >= 1 && peso <= 20) rango = '1-20';
+        else if (peso >= 21 && peso <= 50) rango = '21-50';
+        else if (peso >= 51 && peso <= 100) rango = '51-100';
+        else if (peso >= 101 && peso <= 250) rango = '101-250';
+        else if (peso >= 251 && peso <= 500) rango = '251-500';
+        else if (peso >= 501 && peso <= 1000) rango = '501-1000';
+        else if (peso >= 1001 && peso <= 1500) rango = '1001-1500';
+        else if (peso >= 1501 && peso <= 2000) rango = '1501-2000';
+        else if (peso >= 2001 && peso <= 2500) rango = '2001-2500';
+        else if (peso >= 2501 && peso <= 3000) rango = '2501-3000';
+        else if (peso >= 3001 && peso <= 3500) rango = '3001-3500';
+        else if (peso >= 3501 && peso <= 4000) rango = '3501-4000';
+        else if (peso >= 4001 && peso <= 4500) rango = '4001-4500';
+        else if (peso >= 4501 && peso <= 5000) rango = '4501-5000';
+        else if (peso >= 5001 && peso <= 5500) rango = '5001-5500';
+        else if (peso >= 5501 && peso <= 6000) rango = '5501-6000';
+        else if (peso >= 6001 && peso <= 6500) rango = '6001-6500';
+        else if (peso >= 6501 && peso <= 7000) rango = '6501-7000';
+        else if (peso >= 7001 && peso <= 7500) rango = '7001-7500';
+        else if (peso >= 7501 && peso <= 8000) rango = '7501-8000';
+        else if (peso >= 8001 && peso <= 8500) rango = '8001-8500';
+        else if (peso >= 8501 && peso <= 9000) rango = '8501-9000';
+        else if (peso >= 9001 && peso <= 9500) rango = '9001-9500';
+        else if (peso >= 9501 && peso <= 10000) rango = '9501-10000';
+        
+        if (rango) {
+          const costo = precios[rango as keyof typeof precios];
+          if (costo) {
+            costoTotal += costo;
+          }
+        }
       }
       
       this.recibo.costo = costoTotal > 0 ? costoTotal : null;

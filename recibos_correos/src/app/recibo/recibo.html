@@ -29,13 +29,60 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Oficina, Agencia o Administración Postal <span class="required">*</span></label>
-            <input
-              type="text"
+            <select
               class="form-control"
               [ngClass]="{'error': errores['oficina']}"
               [(ngModel)]="recibo.oficina"
-              placeholder="Ej: Tegucigalpa Central"
-            />
+            >
+              <option value="">Seleccione una agencia postal...</option>
+              <option value="Tegucigalpa Central">Tegucigalpa Central</option>
+              <option value="Tegucigalpa Norte">Tegucigalpa Norte</option>
+              <option value="Tegucigalpa Sur">Tegucigalpa Sur</option>
+              <option value="San Pedro Sula Central">San Pedro Sula Central</option>
+              <option value="San Pedro Sula Oeste">San Pedro Sula Oeste</option>
+              <option value="La Ceiba">La Ceiba</option>
+              <option value="Choluteca">Choluteca</option>
+              <option value="Comayagua">Comayagua</option>
+              <option value="Danlí">Danlí</option>
+              <option value="Juticalpa">Juticalpa</option>
+              <option value="Santa Rosa de Copán">Santa Rosa de Copán</option>
+              <option value="Puerto Cortés">Puerto Cortés</option>
+              <option value="Gracias">Gracias</option>
+              <option value="Siguatepeque">Siguatepeque</option>
+              <option value="El Progreso">El Progreso</option>
+              <option value="Choloma">Choloma</option>
+              <option value="Tela">Tela</option>
+              <option value="La Lima">La Lima</option>
+              <option value="Santa Bárbara">Santa Bárbara</option>
+              <option value="Yoro">Yoro</option>
+              <option value="Ocotepeque">Ocotepeque</option>
+              <option value="Trujillo">Trujillo</option>
+              <option value="Olanchito">Olanchito</option>
+              <option value="Catacamas">Catacamas</option>
+              <option value="Nacaome">Nacaome</option>
+              <option value="El Paraíso">El Paraíso</option>
+              <option value="La Entrada">La Entrada</option>
+              <option value="Santo Tomás">Santo Tomás</option>
+              <option value="Potrerillos">Potrerillos</option>
+              <option value="San Lorenzo">San Lorenzo</option>
+              <option value="Omoa">Omoa</option>
+              <option value="Marcala">Marcala</option>
+              <option value="Amapala">Amapala</option>
+              <option value="Santa Cruz de Yojoa">Santa Cruz de Yojoa</option>
+              <option value="San Buenaventura">San Buenaventura</option>
+              <option value="Comayagua Norte">Comayagua Norte</option>
+              <option value="Tela Centro">Tela Centro</option>
+              <option value="Roatán" >Roatán</option>
+              <option value="Utila">Utila</option>
+              <option value="La Esperanza">La Esperanza</option>
+              <option value="Siguatepeque Norte">Siguatepeque Norte</option>
+              <option value="Santa Rosa de Copán Sur">Santa Rosa de Copán Sur</option>
+              <option value="Corquin">Corquín</option>
+              <option value="La Ceiba Norte">La Ceiba Norte</option>
+              <option value="El Progreso Centro">El Progreso Centro</option>
+              <option value="San Pedro Sula Norte">San Pedro Sula Norte</option>
+              <option value="San Pedro Sula Este">San Pedro Sula Este</option>
+            </select>
             <span class="error-message" *ngIf="errores['oficina']">{{ errores['oficina'] }}</span>
           </div>
 
@@ -90,8 +137,8 @@
           <div class="form-group" *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
             <label>Precio del Sello (L.) <span class="required">*</span></label>
             <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello" (change)="calcularCosto()">
-              <option value="null">Seleccione un precio...</option>
-              <option *ngFor="let precio of preciosSello" [value]="precio">L. {{ precio }}</option>
+              <option [ngValue]="null">Seleccione un precio...</option>
+              <option *ngFor="let precio of preciosSello" [ngValue]="precio">L. {{ precio }}</option>
             </select>
             <span class="error-message" *ngIf="errores['precioSello']">{{ errores['precioSello'] }}</span>
           </div>

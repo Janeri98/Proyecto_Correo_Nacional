@@ -64,9 +64,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   cargarReporte(): void {
     if (this.tipoReporte === 'diario') {
+      const fecha = this.fechaSeleccionada || this.obtenerFechaHoy();
+      this.fechaSeleccionada = fecha;
       const ventas = this.reportesService.obtenerReportePeriodo(
-        this.fechaSeleccionada,
-        this.fechaSeleccionada
+        fecha,
+        fecha
       );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
@@ -79,7 +81,9 @@ export class ReportesComponent implements OnInit, OnDestroy {
         this.fechaSeleccionada
       );
     } else if (this.tipoReporte === 'mensual') {
-      const [year, month] = this.monthSeleccionado.split('-');
+      const mes = this.monthSeleccionado || this.obtenerMesActual();
+      this.monthSeleccionado = mes;
+      const [year, month] = mes.split('-');
       const primerDia = `${year}-${month}-01`;
       const ultimoDia = new Date(parseInt(year), parseInt(month), 0)
         .toISOString()
@@ -98,9 +102,13 @@ export class ReportesComponent implements OnInit, OnDestroy {
       );
       this.reportePorDia = this.reportesService.obtenerReportePorDia(primerDia, ultimoDia);
     } else {
+      const inicio = this.fechaInicio || this.obtenerFechaHoy();
+      const fin = this.fechaFin || inicio;
+      this.fechaInicio = inicio;
+      this.fechaFin = fin;
       const ventas = this.reportesService.obtenerReportePeriodo(
-        this.fechaInicio,
-        this.fechaFin
+        inicio,
+        fin
       );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
@@ -121,7 +129,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private calcularTotales(ventas: any[]): void {
     this.totalVentas = ventas.length;
-    this.totalMonto = ventas.reduce((sum, v) => sum + v.monto, 0);
+    this.totalMonto = ventas.reduce((sum, v) => sum + (Number(v.monto) || 0), 0);
   }
 
   private obtenerFechaHoy(): string {
@@ -173,12 +181,12 @@ export class ReportesComponent implements OnInit, OnDestroy {
       this.dibujarTablaEnPDF(
         doc,
         currentY,
-        ['Fecha', 'Servicio', 'Cantidad', 'Monto', 'Oficina'],
+        ['Recibo', 'Fecha', 'Servicio', 'Monto', 'Oficina'],
         this.ventasTabla.map((v: any) => [
+          v.numero?.toString() || '',
           v.fecha,
           v.servicio.substring(0, 20),
-          v.cantidad.toString(),
-          `${this.simboloMoneda}${v.monto.toFixed(2)}`,
+          `${this.simboloMoneda}${(Number(v.monto) || 0).toFixed(2)}`,
           v.oficina
         ])
       );
@@ -232,7 +240,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private dibujarTablaEnPDF(doc: any, startY: number, headers: string[], rows: string[][]): void {
     const margin = 10;
     const cellHeight = 6;
-    const colWidths = [30, 50, 20, 30, 30];
+    const colWidths = [20, 30, 60, 30, 30];
     let currentY = startY;
 
     // Encabezados
@@ -268,7 +276,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   exportarExcel(): void {
-    let csv = 'data:text/csv;charset=utf-8,';
+    let csv = '\uFEFF';
 
     // Encabezado
     if (this.tipoReporte === 'diario') {
@@ -282,9 +290,10 @@ export class ReportesComponent implements OnInit, OnDestroy {
     csv += `Total Monto,${this.simboloMoneda}${this.totalMonto.toFixed(2)}\n\n`;
 
     // Tabla detallada
-    csv += 'Fecha,Servicio,Cantidad,Monto,Oficina\n';
+    csv += 'Recibo,Fecha,Servicio,Monto,Oficina,Tipo de Pago\n';
     this.ventasTabla.forEach((v: any) => {
-      csv += `${v.fecha},"${v.servicio}",${v.cantidad},${v.monto.toFixed(2)},"${v.oficina}"\n`;
+      const monto = Number(v.monto) || 0;
+      csv += `${v.numero || ''},${v.fecha},"${v.servicio}",${monto.toFixed(2)},"${v.oficina}","${v.tipoPago || ''}"\n`;
     });
 
     csv += '\n\nResumen por Servicio\n';
@@ -299,13 +308,17 @@ export class ReportesComponent implements OnInit, OnDestroy {
       csv += `"${r.oficina}",${r.cantidad},${r.monto.toFixed(2)}\n`;
     });
 
-    const encodedUri = encodeURI(csv);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute(
       'download',
       `reporte-ventas-${new Date().toISOString().split('T')[0]}.csv`
     );
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 }

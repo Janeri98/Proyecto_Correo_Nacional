@@ -3,11 +3,13 @@ import { RecibosStorageService, Recibo } from './recibos-storage.service';
 
 export interface Venta {
   id: number;
+  numero: number;
   fecha: string;
   servicio: string;
   cantidad: number;
   monto: number;
   oficina: string;
+  tipoPago: string;
 }
 
 export interface ReporteData {
@@ -27,12 +29,21 @@ export class ReportesService {
     const recibos = this.recibosStorage.obtenerRecibos();
     return recibos.map((recibo, index) => ({
       id: index + 1,
-      fecha: recibo.fecha,
+      numero: recibo.numero || index + 1,
+      fecha: recibo.fechaPago || recibo.fecha,
       servicio: recibo.tipoServicio,
       cantidad: 1,
-      monto: recibo.total,
-      oficina: recibo.oficina
+      monto: Number(recibo.total) || 0,
+      oficina: recibo.oficina,
+      tipoPago: recibo.tipoPago || ''
     }));
+  }
+
+  obtenerRecibosPorPeriodo(fechaInicio: string, fechaFin: string): Recibo[] {
+    return this.recibosStorage.obtenerRecibos().filter(recibo => {
+      const fecha = recibo.fechaPago || recibo.fecha;
+      return fecha >= fechaInicio && fecha <= fechaFin;
+    });
   }
 
   obtenerReporteDiario(fecha: string): ReporteData {
