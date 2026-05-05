@@ -494,7 +494,7 @@ export class ReciboComponent {
     this.recibo = {
       numero: '',
       oficina: '',
-      fecha: '',
+      fecha: this.fechaHoy,
       remitente: '',
       destinatario: '',
       concepto: '',
@@ -502,11 +502,31 @@ export class ReciboComponent {
       costo: null,
       tipoServicio: '',
       tipoPago: '',
-      grupo: 'grupo1', // NUEVO
-      precioSello: null, // NUEVO
+      grupo: 'grupo1',
+      precioSello: null,
     };
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
+    this.errores = {};
+  }
+
+  // NUEVA FUNCIÓN: Limpiar formulario
+  limpiarFormulario() {
+    this.recibo = {
+      numero: '',
+      oficina: '',
+      fecha: this.fechaHoy,
+      remitente: '',
+      destinatario: '',
+      concepto: '',
+      peso: null,
+      costo: null,
+      tipoServicio: '',
+      tipoPago: '',
+      grupo: 'grupo1',
+      precioSello: null,
+    };
+    
     this.errores = {};
   }
 }

@@ -1,280 +1,259 @@
-<div class="recibo-container">
-  <div class="recibo-header">
-    <div class="logo-container">        
-      <div class="logo-icon">
-        <img src="assets/Imagen.png" alt="Logo Correos de Honduras" class="logo-img">
+<div class="recibo-wrapper">
+  <!-- Formulario Interactivo -->
+  <div *ngIf="!reciboGenerado" class="form-section">
+    <div class="form-header" style="text-align: center;">
+      <div class="logo-container">
+        <img src="assets/Imagen.png" alt="Logo" style="max-height: 80px; margin-bottom: 10px;">
+      </div>
+      <h2>Generar Recibo de Pago</h2>
+      <p class="receipt-number">Recibo Nº: <strong>{{ numeroRecibo }}</strong></p>
+    </div>
+
+    <form class="recibo-form">
+      <!-- FILA 1: Oficina y Fecha -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Oficina, Agencia o Administración Postal <span class="required">*</span></label>
+          <select class="form-control" [ngClass]="{'error': errores['oficina']}" [(ngModel)]="recibo.oficina"
+            name="oficina">
+            <option value="">Seleccione una agencia postal...</option>
+            <option value="Tegucigalpa Central">Frnacisco Morazán Tegucigalpa Toncontin </option>
+            <option value="San Pedro Sula Central">Atlántida </option>
+            <option value="La Ceiba">Choluteca</option>
+            <option value="Choluteca">Colón</option>
+            <option value="Comayagua">Comayagua</option>
+            <option value="Danlí">Copán</option>
+            <option value="Juticalpa">Cortes </option>
+            <option value="Santa Rosa de Copán">El paraiso </option>
+            <option value="Gracias">Gracias A Dios </option>
+            <option value="Siguatepeque">Intibucá</option>
+            <option value="El Progreso">Islas de la Bahia </option>
+            <option value="Choloma">La Paz </option>
+            <option value="Tela">Lempira</option>
+            <option value="La Lima">Ocotepeque </option>
+            <option value="Santa Bárbara">Santa Bárbara</option>
+            <option value="Ocotepeque">Olancho</option>
+            <option value="Olanchito">Valle </option>
+
+
+
+          </select>
+          <span class="error-message" *ngIf="errores['oficina']">{{ errores['oficina'] }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Pago <span class="required">*</span></label>
+          <input type="date" class="form-control" [ngClass]="{'error': errores['fecha']}" [(ngModel)]="recibo.fecha"
+            [min]="fechaHoy" [max]="fechaHoy" (change)="validarFecha()" name="fecha" />
+          <span class="error-message" *ngIf="errores['fecha']">{{ errores['fecha'] }}</span>
+        </div>
       </div>
 
-      <div>
-        <h3>CORREOS DE HONDURAS</h3>
-        <h6>RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"</h6>
+      <!-- FILA 2: Remitente y Destinatario -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Remitente (Quien envía) <span class="required">*</span></label>
+          <input type="text" class="form-control" [ngClass]="{'error': errores['remitente']}"
+            [(ngModel)]="recibo.remitente" placeholder="Nombre completo" name="remitente" />
+          <span class="error-message" *ngIf="errores['remitente']">{{ errores['remitente'] }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Destinatario (Quien recibe) <span class="required">*</span></label>
+          <input type="text" class="form-control" [ngClass]="{'error': errores['destinatario']}"
+            [(ngModel)]="recibo.destinatario" placeholder="Nombre completo" name="destinatario" />
+          <span class="error-message" *ngIf="errores['destinatario']">{{ errores['destinatario'] }}</span>
+        </div>
       </div>
-      <div class="logo-derecha">
-        <img src="assets/pa.png.png" alt="Logo Correos de Honduras" class="logo-icon2">
-        <H3>HN</H3>
+
+      <!-- FILA 3: Tipo de Servicio (Full Width) -->
+      <div class="form-row full-width">
+        <div class="form-group">
+          <label>Tipo de Servicio <span class="required">*</span></label>
+          <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio"
+            (change)="onServicioChange()" name="tipoServicio">
+            <option value="">Seleccione un servicio...</option>
+            <option *ngFor="let s of servicios" [value]="s">{{ s }}</option>
+          </select>
+          <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
+        </div>
       </div>
-    </div>
+
+      <!-- FILA 4: Precio de Sello (Condicional) -->
+      <div class="form-row full-width"
+        *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
+        <div class="form-group">
+          <label>Precio del Sello (L.) <span class="required">*</span></label>
+          <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello"
+            (change)="calcularCosto()" name="precioSello">
+            <option [ngValue]="null">Seleccione un precio...</option>
+            <option *ngFor="let precio of preciosSello" [ngValue]="precio">L. {{ precio }}</option>
+          </select>
+          <span class="error-message" *ngIf="errores['precioSello']">{{ errores['precioSello'] }}</span>
+        </div>
+      </div>
+
+      <!-- FILA 5: Observaciones, Peso y Grupo -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Observaciones</label>
+          <input type="text" class="form-control" [(ngModel)]="recibo.concepto" placeholder="Descripción del envío"
+            name="concepto" />
+        </div>
+
+        <div class="form-group">
+          <label>Peso (g)</label>
+          <input type="number" class="form-control" [(ngModel)]="recibo.peso" (input)="calcularCosto()" step="0.1"
+            placeholder="0.0" name="peso" />
+        </div>
+      </div>
+
+      <!-- FILA 6: Grupo Geográfico y Costo -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Grupo Geográfico <span class="required">*</span></label>
+          <select class="form-control" [ngClass]="{'error': errores['grupo']}" [(ngModel)]="recibo.grupo"
+            (change)="calcularCosto()" name="grupo">
+            <option value="">Seleccione...</option>
+            <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
+          </select>
+          <span class="error-message" *ngIf="errores['grupo']">{{ errores['grupo'] }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Costo (Lempiras) <span class="required">*</span></label>
+          <input type="number" class="form-control" [ngClass]="{'error': errores['costo']}" [(ngModel)]="recibo.costo"
+            readonly step="0.01" placeholder="0.00" name="costo" />
+          <span class="error-message" *ngIf="errores['costo']">{{ errores['costo'] }}</span>
+        </div>
+      </div>
+
+      <!-- FILA 7: Tipo de Pago (Full Width) -->
+      <div class="form-row full-width">
+        <div class="form-group">
+          <label>Tipo de Pago <span class="required">*</span></label>
+          <select class="form-control" [ngClass]="{'error': errores['tipoPago']}" [(ngModel)]="recibo.tipoPago"
+            name="tipoPago">
+            <option value="">Seleccione...</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
+          <span class="error-message" *ngIf="errores['tipoPago']">{{ errores['tipoPago'] }}</span>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="limpiarFormulario()">
+          ↻ Limpiar formulario
+        </button>
+        <button type="button" class="btn btn-primary" (click)="generarRecibo()">
+          ✓ Generar Recibo
+        </button>
+      </div>
+    </form>
   </div>
 
-  <div id="recibo-pdf-content">
-    <div class="recibo-body">
-      <!-- Formulario -->
-      <div *ngIf="!reciboGenerado" class="no-print">
-        <div class="info-row">
-          <span class="info-label">RECIBO Nº:</span>
-          <span class="info-value">{{ numeroRecibo }}</span>
+  <!-- Recibo Generado -->
+  <div *ngIf="reciboGenerado" id="recibo-pdf-content" class="recibo-display">
+    <!-- Print Header -->
+    <div class="recibo-header print-only">
+      <div class="logo-container">
+        <div class="logo-icon">
+          <img src="assets/Imagen.png" alt="Logo Correos de Honduras" class="logo-img">
         </div>
 
-        <!-- FORMULARIO EN 2 COLUMNAS -->
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Oficina, Agencia o Administración Postal <span class="required">*</span></label>
-            <select
-              class="form-control"
-              [ngClass]="{'error': errores['oficina']}"
-              [(ngModel)]="recibo.oficina"
-            >
-              <option value="">Seleccione una agencia postal...</option>
-              <option value="Tegucigalpa Central">Tegucigalpa Central</option>
-              <option value="Tegucigalpa Norte">Tegucigalpa Norte</option>
-              <option value="Tegucigalpa Sur">Tegucigalpa Sur</option>
-              <option value="San Pedro Sula Central">San Pedro Sula Central</option>
-              <option value="San Pedro Sula Oeste">San Pedro Sula Oeste</option>
-              <option value="La Ceiba">La Ceiba</option>
-              <option value="Choluteca">Choluteca</option>
-              <option value="Comayagua">Comayagua</option>
-              <option value="Danlí">Danlí</option>
-              <option value="Juticalpa">Juticalpa</option>
-              <option value="Santa Rosa de Copán">Santa Rosa de Copán</option>
-              <option value="Puerto Cortés">Puerto Cortés</option>
-              <option value="Gracias">Gracias</option>
-              <option value="Siguatepeque">Siguatepeque</option>
-              <option value="El Progreso">El Progreso</option>
-              <option value="Choloma">Choloma</option>
-              <option value="Tela">Tela</option>
-              <option value="La Lima">La Lima</option>
-              <option value="Santa Bárbara">Santa Bárbara</option>
-              <option value="Yoro">Yoro</option>
-              <option value="Ocotepeque">Ocotepeque</option>
-              <option value="Trujillo">Trujillo</option>
-              <option value="Olanchito">Olanchito</option>
-              <option value="Catacamas">Catacamas</option>
-              <option value="Nacaome">Nacaome</option>
-              <option value="El Paraíso">El Paraíso</option>
-              <option value="La Entrada">La Entrada</option>
-              <option value="Santo Tomás">Santo Tomás</option>
-              <option value="Potrerillos">Potrerillos</option>
-              <option value="San Lorenzo">San Lorenzo</option>
-              <option value="Omoa">Omoa</option>
-              <option value="Marcala">Marcala</option>
-              <option value="Amapala">Amapala</option>
-              <option value="Santa Cruz de Yojoa">Santa Cruz de Yojoa</option>
-              <option value="San Buenaventura">San Buenaventura</option>
-              <option value="Comayagua Norte">Comayagua Norte</option>
-              <option value="Tela Centro">Tela Centro</option>
-              <option value="Roatán" >Roatán</option>
-              <option value="Utila">Utila</option>
-              <option value="La Esperanza">La Esperanza</option>
-              <option value="Siguatepeque Norte">Siguatepeque Norte</option>
-              <option value="Santa Rosa de Copán Sur">Santa Rosa de Copán Sur</option>
-              <option value="Corquin">Corquín</option>
-              <option value="La Ceiba Norte">La Ceiba Norte</option>
-              <option value="El Progreso Centro">El Progreso Centro</option>
-              <option value="San Pedro Sula Norte">San Pedro Sula Norte</option>
-              <option value="San Pedro Sula Este">San Pedro Sula Este</option>
-            </select>
-            <span class="error-message" *ngIf="errores['oficina']">{{ errores['oficina'] }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Fecha de Pago <span class="required">*</span></label>
-            <input
-              type="date"
-              class="form-control"
-              [ngClass]="{'error': errores['fecha']}"
-              [(ngModel)]="recibo.fecha"
-              [min]="fechaHoy"
-              [max]="fechaHoy"
-              (change)="validarFecha()"
-            />
-            <span class="error-message" *ngIf="errores['fecha']">{{ errores['fecha'] }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Remitente (Quien envía) <span class="required">*</span></label>
-            <input
-              type="text"
-              class="form-control"
-              [ngClass]="{'error': errores['remitente']}"
-              [(ngModel)]="recibo.remitente"
-              placeholder="Nombre completo"
-            />
-            <span class="error-message" *ngIf="errores['remitente']">{{ errores['remitente'] }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Destinatario (Quien recibe) <span class="required">*</span></label>
-            <input
-              type="text"
-              class="form-control"
-              [ngClass]="{'error': errores['destinatario']}"
-              [(ngModel)]="recibo.destinatario"
-              placeholder="Nombre completo"
-            />
-            <span class="error-message" *ngIf="errores['destinatario']">{{ errores['destinatario'] }}</span>
-          </div>
-
-          <div class="form-group full-width">
-            <label>Tipo de Servicio <span class="required">*</span></label>
-            <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio" (change)="onServicioChange()">
-              <option value="">Seleccione un servicio...</option>
-              <option *ngFor="let s of servicios" [value]="s">{{ s }}</option>
-            </select>
-            <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
-          </div>
-
-          <!-- NUEVO CAMPO: Seleccionar precio de sello (solo para Sellos Postales y Filatelicos) -->
-          <div class="form-group" *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
-            <label>Precio del Sello (L.) <span class="required">*</span></label>
-            <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello" (change)="calcularCosto()">
-              <option [ngValue]="null">Seleccione un precio...</option>
-              <option *ngFor="let precio of preciosSello" [ngValue]="precio">L. {{ precio }}</option>
-            </select>
-            <span class="error-message" *ngIf="errores['precioSello']">{{ errores['precioSello'] }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Observaciones</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="recibo.concepto"
-              placeholder="Descripción del envío"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Peso (g)</label>
-            <input
-              type="number"
-              class="form-control"
-              [(ngModel)]="recibo.peso"
-              (input)="calcularCosto()"
-              step="0.1"
-              placeholder="0.0"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Grupo Geográfico <span class="required">*</span></label>
-            <select class="form-control" [ngClass]="{'error': errores['grupo']}" [(ngModel)]="recibo.grupo" (change)="calcularCosto()">
-              <option value="">Seleccione...</option>
-              <option *ngFor="let g of grupos" [value]="g.id">{{ g.nombre }}</option>
-            </select>
-            <span class="error-message" *ngIf="errores['grupo']">{{ errores['grupo'] }}</span>
-          </div>
-
-          <div class="form-group">
-            <label>Costo (Lempiras) <span class="required">*</span></label>
-            <input
-              type="number"
-              class="form-control"
-              [ngClass]="{'error': errores['costo']}"
-              [(ngModel)]="recibo.costo"
-              readonly
-              step="0.01"
-              placeholder="0.00"
-            />
-            <span class="error-message" *ngIf="errores['costo']">{{ errores['costo'] }}</span>
-          </div>
-
-          <!-- NUEVO CAMPO: TIPO DE PAGO -->
-          <div class="form-group full-width">
-            <label>Tipo de Pago <span class="required">*</span></label>
-            <select class="form-control" [ngClass]="{'error': errores['tipoPago']}" [(ngModel)]="recibo.tipoPago">
-              <option value="">Seleccione...</option>
-              <option value="Efectivo">Efectivo</option>
-              <option value="Tarjeta">Tarjeta</option>
-              <option value="Transferencia">Transferencia</option>
-            </select>
-            <span class="error-message" *ngIf="errores['tipoPago']">{{ errores['tipoPago'] }}</span>
-          </div>
+        <div class="header-text">
+          <h3>CORREOS DE HONDURAS</h3>
+          <h6>RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"</h6>
         </div>
 
-        <button class="btn-generar" (click)="generarRecibo()">Generar Recibo</button>
-      </div>
-
-      <!-- Recibo Generado -->
-      <div *ngIf="reciboGenerado">
-        <div class="info-row">
-          <span class="info-label">RECIBO Nº:</span>
-          <span class="info-value">{{ reciboGenerado.numero }}</span>
-        </div>
-
-        <table class="table-recibo">
-          <tr>
-            <td>Oficina/Agencia:</td>
-            <td><strong>{{ reciboGenerado.oficina || 'No especificada' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Fecha de Pago:</td>
-            <td><strong>{{ reciboGenerado.fechaPago }}</strong></td>
-          </tr>
-          <tr>
-            <td>Remitente:</td>
-            <td><strong>{{ reciboGenerado.remitente || 'No especificado' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Destinatario:</td>
-            <td><strong>{{ reciboGenerado.destinatario || 'No especificado' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Tipo de Servicio:</td>
-            <td><strong>{{ reciboGenerado.tipoServicio }}</strong></td>
-          </tr>
-          <!-- NUEVA FILA: TIPO DE PAGO -->
-          <tr>
-            <td>Tipo de Pago:</td>
-            <td><strong>{{ reciboGenerado.tipoPago || 'No especificado' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Grupo Geográfico:</td>
-            <td><strong>{{ grupos.find(g => g.id === reciboGenerado.grupo)?.nombre || 'No especificado' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Concepto:</td>
-            <td><strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong></td>
-          </tr>
-          <tr>
-            <td>Peso:</td>
-            <td><strong>{{ reciboGenerado.peso || '0' }} g</strong></td>
-          </tr>
-          <tr class="total-row">
-            <td>TOTAL A PAGAR:</td>
-            <td><strong>L. {{ reciboGenerado.total | number: '1.2-2' }}</strong></td>
-          </tr>
-        </table>
-
-        <div class="firma">
-          <div class="firma-linea">
-            <hr />
-            <p>Firma del Cliente</p>
-          </div>
-          <div class="firma-linea">
-            <hr />
-            <p>Sello y Firma del Cajero</p>
-          </div>
-        </div>
-
-        <div class="no-print">
-          <button class="btn-imprimir" (click)="imprimir()">🖨️ Imprimir Recibo</button>
-          <button class="btn-descargar-pdf" (click)="generarPDF()">📥 Descargar PDF</button>
-          <button class="btn-whatsapp" (click)="enviarPorWhatsApp()">💬 Enviar PDF por WhatsApp</button>
-          <button class="btn-generar" style="margin-top: 10px; background: #6c757d" (click)="nuevoRecibo()">
-            ➕ Nuevo Recibo
-          </button>
+        <div class="logo-derecha">
+          <img src="assets/pa.png.png" alt="Logo Honduras" class="logo-icon2">
+          <H3>HN</H3>
         </div>
       </div>
+    </div>
+
+    <!-- Receipt Display -->
+    <div class="receipt-content">
+      <div class="receipt-number-display">
+        <span class="label">RECIBO Nº</span>
+        <span class="value">{{ reciboGenerado.numero }}</span>
+      </div>
+
+      <table class="receipt-table">
+        <tr>
+          <td class="label">Oficina/Agencia:</td>
+          <td class="value"><strong>{{ reciboGenerado.oficina || 'No especificada' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Fecha de Pago:</td>
+          <td class="value"><strong>{{ reciboGenerado.fechaPago }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Remitente:</td>
+          <td class="value"><strong>{{ reciboGenerado.remitente || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Destinatario:</td>
+          <td class="value"><strong>{{ reciboGenerado.destinatario || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Tipo de Servicio:</td>
+          <td class="value"><strong>{{ reciboGenerado.tipoServicio }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Tipo de Pago:</td>
+          <td class="value"><strong>{{ reciboGenerado.tipoPago || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Grupo Geográfico:</td>
+          <td class="value"><strong>{{ grupos.find(g => g.id === reciboGenerado.grupo)?.nombre || 'No especificado'
+              }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Concepto:</td>
+          <td class="value"><strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Peso:</td>
+          <td class="value"><strong>{{ reciboGenerado.peso || '0' }} g</strong></td>
+        </tr>
+        <tr class="total-row">
+          <td class="label">TOTAL A PAGAR:</td>
+          <td class="value"><strong>L. {{ reciboGenerado.total | number: '1.2-2' }}</strong></td>
+        </tr>
+      </table>
+
+      <!-- Firma Section (Print Only) -->
+      <div class="firma print-only">
+        <div class="firma-linea">
+          <hr />
+          <p>Firma del Cliente</p>
+        </div>
+        <div class="firma-linea">
+          <hr />
+          <p>Sello y Firma del Cajero</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="receipt-actions screen-only">
+      <button type="button" class="btn btn-print" (click)="imprimir()">
+        🖨️ Imprimir Recibo
+      </button>
+      <button type="button" class="btn btn-pdf" (click)="generarPDF()">
+        📥 Descargar PDF
+      </button>
+      <button type="button" class="btn btn-whatsapp" (click)="enviarPorWhatsApp()">
+        💬 Enviar por WhatsApp
+      </button>
+      <button type="button" class="btn btn-new" (click)="nuevoRecibo()">
+        ➕ Nuevo Recibo
+      </button>
     </div>
   </div>
 </div>
