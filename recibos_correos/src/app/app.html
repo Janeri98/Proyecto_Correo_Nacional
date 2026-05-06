@@ -1,0 +1,161 @@
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+          <path d="m22 7-10 7L2 7"></path>
+        </svg>
+      </div>
+      <h2>Correos</h2>
+      <p>Sistema de Gestión</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        routerLink="/inicio"
+        routerLinkActive="active"
+        class="nav-item"
+      >
+        <i class="icon">🏠</i>
+        <span>Inicio</span>
+      </a>
+      <a
+        routerLink="/recibo"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <i class="icon">📋</i>
+        <span>Recibos</span>
+      </a>
+      <a
+        routerLink="/reportes"
+        routerLinkActive="active"
+        class="nav-item"
+      >
+        <i class="icon">📊</i>
+        <span>Reportes</span>
+      </a>
+      <a (click)="abrirLogin()" class="nav-item" *ngIf="!usuarioAutenticado">
+        <i class="icon">👥</i>
+        <span>Usuarios</span>
+      </a>
+      <a class="nav-item usuario-info" *ngIf="usuarioAutenticado">
+        <i class="icon">👤</i>
+        <span>{{ usuarioActual }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="usuarioAutenticado">
+      <button class="logout-btn" (click)="cerrarSesion()">
+        <i class="icon">🚪</i>
+        <span>Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="page-title">Generar Recibo</h1>
+      </div>
+      <div class="header-right">
+        <div class="user-profile">
+          <div class="user-avatar" *ngIf="usuarioAutenticado">{{ usuarioActual | slice:0:2 | uppercase }}</div>
+          <div class="user-avatar" *ngIf="!usuarioAutenticado">--</div>
+          <div class="user-info">
+            <p class="user-name" *ngIf="usuarioAutenticado">{{ usuarioActual }}</p>
+            <p class="user-name" *ngIf="!usuarioAutenticado">No autenticado</p>
+            <p class="user-role" *ngIf="usuarioAutenticado">Tesorería</p>
+            <p class="user-role" *ngIf="!usuarioAutenticado">Inicia sesión</p>
+          </div>
+          <i class="dropdown-icon">▼</i>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+
+<!-- Modal de Login -->
+<div class="modal-overlay" *ngIf="mostrarModalLogin" (click)="mostrarModalLogin = false">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Iniciar Sesión</h2>
+      <button class="btn-close" (click)="mostrarModalLogin = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Campo Nombre -->
+      <div class="form-group">
+        <label for="nombre">Nombre Completo <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="nombre"
+          class="form-control" 
+          [(ngModel)]="formularioLogin.nombre"
+          [class.error]="erroresLogin['nombre']"
+          placeholder="Ingresa tu nombre completo"
+          name="nombre" />
+        <span class="error-message" *ngIf="erroresLogin['nombre']">{{ erroresLogin['nombre'] }}</span>
+      </div>
+
+      <!-- Campo Correo -->
+      <div class="form-group">
+        <label for="correo">Correo Electrónico <span class="required">*</span></label>
+        <input 
+          type="email" 
+          id="correo"
+          class="form-control" 
+          [(ngModel)]="formularioLogin.correo"
+          [class.error]="erroresLogin['correo']"
+          placeholder="ejemplo@correo.com"
+          name="correo" />
+        <span class="error-message" *ngIf="erroresLogin['correo']">{{ erroresLogin['correo'] }}</span>
+      </div>
+
+      <!-- Campo Dirección -->
+      <div class="form-group">
+        <label for="direccion">Dirección <span class="required">*</span></label>
+        <input 
+          type="text" 
+          id="direccion"
+          class="form-control" 
+          [(ngModel)]="formularioLogin.direccion"
+          [class.error]="erroresLogin['direccion']"
+          placeholder="Calle, número, apartamento"
+          name="direccion" />
+        <span class="error-message" *ngIf="erroresLogin['direccion']">{{ erroresLogin['direccion'] }}</span>
+      </div>
+
+      <!-- Campo Teléfono -->
+      <div class="form-group">
+        <label for="telefono">Número de Teléfono <span class="required">*</span></label>
+        <input 
+          type="tel" 
+          id="telefono"
+          class="form-control" 
+          [(ngModel)]="formularioLogin.telefono"
+          [class.error]="erroresLogin['telefono']"
+          placeholder="+504 9999-9999"
+          name="telefono" />
+        <span class="error-message" *ngIf="erroresLogin['telefono']">{{ erroresLogin['telefono'] }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="mostrarModalLogin = false">
+        Cancelar
+      </button>
+      <button class="btn btn-primary" (click)="iniciarSesion()">
+        Iniciar Sesión
+      </button>
+    </div>
+  </div>
+</div>

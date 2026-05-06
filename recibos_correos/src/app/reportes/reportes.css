@@ -117,24 +117,171 @@ h5 {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .container-fluid {
+    padding: 15px;
+  }
+
+  .card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+  }
+
   .card-body {
-    padding: 10px !important;
+    padding: 15px !important;
+  }
+
+  .card-header {
+    padding: 12px 15px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .card-title {
+    font-size: 18px;
+    margin-bottom: 0;
   }
 
   .table {
-    font-size: 0.85rem;
+    font-size: 12px;
+    margin-bottom: 0;
   }
 
   .table thead th,
   .table tbody td {
-    padding: 8px;
+    padding: 8px 6px;
+    white-space: nowrap;
+  }
+
+  .table-responsive {
+    border-radius: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .display-4 {
-    font-size: 2rem;
+    font-size: 28px;
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-size: 24px;
+  }
+
+  .row {
+    margin: 0 -5px;
+  }
+
+  .col-md-6,
+  .col-lg-3,
+  .col-lg-6,
+  .col-lg-12 {
+    padding: 0 5px;
+    margin-bottom: 15px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .form-control {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .alert {
+    padding: 12px 15px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-fluid {
+    padding: 10px;
+  }
+
+  .card-body {
+    padding: 12px !important;
+  }
+
+  .card-header {
+    padding: 10px 12px;
+  }
+
+  .card-title {
+    font-size: 16px;
+  }
+
+  .table {
+    font-size: 11px;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 6px 4px;
+  }
+
+  .display-4 {
+    font-size: 24px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .col-md-6,
+  .col-lg-3,
+  .col-lg-6,
+  .col-lg-12 {
+    padding: 0 3px;
+    margin-bottom: 12px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .form-control {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .alert {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  /* Mejorar scroll horizontal en móviles pequeños */
+  .table-responsive {
+    font-size: 10px;
+  }
+
+  .table-responsive::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 2px;
   }
 }

@@ -17,7 +17,7 @@
           <select class="form-control" [ngClass]="{'error': errores['oficina']}" [(ngModel)]="recibo.oficina"
             name="oficina">
             <option value="">Seleccione una agencia postal...</option>
-            <option value="Tegucigalpa Central">Frnacisco Morazán Tegucigalpa Toncontin </option>
+            <option value="Tegucigalpa Central">Fracisco Morazán Tegucigalpa Toncontin </option>
             <option value="San Pedro Sula Central">Atlántida </option>
             <option value="La Ceiba">Choluteca</option>
             <option value="Choluteca">Colón</option>
@@ -70,11 +70,45 @@
       <div class="form-row full-width">
         <div class="form-group">
           <label>Tipo de Servicio <span class="required">*</span></label>
-          <select class="form-control" [ngClass]="{'error': errores['tipoServicio']}" [(ngModel)]="recibo.tipoServicio"
-            (change)="onServicioChange()" name="tipoServicio">
-            <option value="">Seleccione un servicio...</option>
-            <option *ngFor="let s of servicios" [value]="s">{{ s }}</option>
-          </select>
+          <div class="search-container">
+            <input 
+              type="text" 
+              class="form-control search-input" 
+              [(ngModel)]="busquedaServicio" 
+              (input)="abrirListaServicios()"
+              placeholder="Buscar servicio (ej: apartado, sello, ems, certificado...)" 
+              name="busquedaServicio"
+              autocomplete="off" />
+            <div class="search-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </div>
+            
+            <!-- Lista desplegable de servicios -->
+            <div class="search-results" *ngIf="mostrarListaServicios && serviciosFiltrados.length > 0">
+              <div class="search-result-item" 
+                *ngFor="let servicio of serviciosFiltrados; let i = index"
+                (click)="seleccionarServicio(servicio)"
+                [class.selected]="i === servicioSeleccionadoIndex"
+                (mouseenter)="servicioSeleccionadoIndex = i">
+                {{ servicio }}
+              </div>
+            </div>
+            
+            <!-- Mensaje si no hay resultados -->
+            <div class="search-no-results" *ngIf="mostrarListaServicios && serviciosFiltrados.length === 0 && busquedaServicio.trim()">
+              <p>No se encontraron servicios con "{{ busquedaServicio }}"</p>
+            </div>
+          </div>
+          
+          <!-- Mostrar servicio seleccionado -->
+          <div class="selected-service" *ngIf="recibo.tipoServicio">
+            <strong>Seleccionado:</strong> {{ recibo.tipoServicio }}
+            <button type="button" class="btn-clear" (click)="limpiarServicio()">✕</button>
+          </div>
+          
           <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
         </div>
       </div>
@@ -156,7 +190,7 @@
   </div>
 
   <!-- Recibo Generado -->
-  <div *ngIf="reciboGenerado" id="recibo-pdf-content" class="recibo-display">
+  <div *ngIf="reciboGenerado" id="recibo-pdf-conten" class="recibo-display">
     <!-- Print Header -->
     <div class="recibo-header print-only">
       <div class="logo-container">

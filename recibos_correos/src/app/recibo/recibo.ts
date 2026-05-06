@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RecibosStorageService } from '../services/recibos-storage.service';
@@ -14,7 +14,7 @@ import jsPDF from 'jspdf';
 })
 export class ReciboComponent {
   @ViewChild('reciboContent', { static: false }) reciboContent!: ElementRef;
-  
+
   recibo = {
     numero: '',
     oficina: '',
@@ -34,6 +34,9 @@ export class ReciboComponent {
   numeroRecibo = Math.floor(Math.random() * 1000000);
   errores: { [key: string]: string } = {};
   fechaHoy: string = ''; // NUEVO: Fecha de hoy únicamente permitida
+  busquedaServicio: string = ''; // NUEVO: Variable para búsqueda de servicios
+  mostrarListaServicios: boolean = false; // NUEVO: Mostrar lista de servicios
+  servicioSeleccionadoIndex: number = -1; // NUEVO: Índice del servicio seleccionado
 
   servicios = [
     '45211 - Apartado Postal',
@@ -90,11 +93,11 @@ export class ReciboComponent {
 
   // NUEVO: Tabla de precios por rango de peso y grupo geográfico
   tablaPrecios = {
-    grupo1: { 
+    grupo1: {
       // Centro América
-      '1-20': 320, '21-50': 320, '51-100': 320, '101-250': 320, '251-500': 370, '501-1000': 420, 
-      '1001-1500': 470, '1501-2000': 520, '2001-2500': 570, '2501-3000': 620, '3001-3500': 670, 
-      '3501-4000': 720, '4001-4500': 770, '4501-5000': 820, '5001-5500': 870, '5501-6000': 920, 
+      '1-20': 320, '21-50': 320, '51-100': 320, '101-250': 320, '251-500': 370, '501-1000': 420,
+      '1001-1500': 470, '1501-2000': 520, '2001-2500': 570, '2501-3000': 620, '3001-3500': 670,
+      '3501-4000': 720, '4001-4500': 770, '4501-5000': 820, '5001-5500': 870, '5501-6000': 920,
       '6001-6500': 970, '6501-7000': 1020, '7001-7500': 1070, '7501-8000': 1120, '8001-8500': 1170,
       '8501-9000': 1220, '9001-9500': 1270, '9501-10000': 1320
     },
@@ -150,6 +153,15 @@ export class ReciboComponent {
     }
   }
 
+  // NUEVO: Getter para filtrar servicios por búsqueda
+  get serviciosFiltrados() {
+    if (!this.busquedaServicio.trim()) {
+      return this.servicios;
+    }
+    const termino = this.busquedaServicio.toLowerCase().trim();
+    return this.servicios.filter(s => s.toLowerCase().includes(termino));
+  }
+
   // NUEVA FUNCIÓN: Manejar cambio de servicio
   onServicioChange() {
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
@@ -170,18 +182,18 @@ export class ReciboComponent {
       // Para sellos: sumar precio del sello + costo del peso según tabla geográfica
       let costoTotal = 0;
       const precioSelloSeleccionado = Number(this.recibo.precioSello) || 0;
-      
+
       // Agregar precio del sello si está seleccionado
       if (precioSelloSeleccionado > 0) {
         costoTotal += precioSelloSeleccionado;
       }
-      
+
       // Agregar costo del peso según la tabla geográfica
       if (this.recibo.peso && this.recibo.peso > 0) {
         const peso = this.recibo.peso;
         const grupo = this.recibo.grupo;
         const precios = this.tablaPrecios[grupo as keyof typeof this.tablaPrecios];
-        
+
         // Encontrar el rango que corresponde al peso
         let rango = '';
         if (peso >= 1 && peso <= 20) rango = '1-20';
@@ -208,7 +220,7 @@ export class ReciboComponent {
         else if (peso >= 8501 && peso <= 9000) rango = '8501-9000';
         else if (peso >= 9001 && peso <= 9500) rango = '9001-9500';
         else if (peso >= 9501 && peso <= 10000) rango = '9501-10000';
-        
+
         if (rango) {
           const costo = precios[rango as keyof typeof precios];
           if (costo) {
@@ -216,7 +228,7 @@ export class ReciboComponent {
           }
         }
       }
-      
+
       this.recibo.costo = costoTotal > 0 ? costoTotal : null;
     } else {
       // Para otros servicios: usar tabla de precios por grupo geográfico
@@ -228,7 +240,7 @@ export class ReciboComponent {
       const peso = this.recibo.peso;
       const grupo = this.recibo.grupo;
       const precios = this.tablaPrecios[grupo as keyof typeof this.tablaPrecios];
-      
+
       // Encontrar el rango que corresponde al peso
       let rango = '';
       if (peso >= 1 && peso <= 20) rango = '1-20';
@@ -265,6 +277,38 @@ export class ReciboComponent {
       if (costo) {
         this.recibo.costo = costo;
       }
+    }
+  }
+
+  // NUEVO: Métodos para el autocomplete de servicios
+  abrirListaServicios() {
+    this.mostrarListaServicios = true;
+    this.servicioSeleccionadoIndex = -1;
+  }
+
+  seleccionarServicio(servicio: string) {
+    this.recibo.tipoServicio = servicio;
+    this.busquedaServicio = '';
+    this.mostrarListaServicios = false;
+    this.servicioSeleccionadoIndex = -1;
+    this.onServicioChange();
+  }
+
+  limpiarServicio() {
+    this.recibo.tipoServicio = '';
+    this.busquedaServicio = '';
+    this.mostrarListaServicios = false;
+    this.servicioSeleccionadoIndex = -1;
+    this.calcularCosto();
+  }
+
+  // NUEVO: Cerrar lista al hacer clic fuera
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const searchContainer = document.querySelector('.search-container');
+    if (searchContainer && !searchContainer.contains(target)) {
+      this.mostrarListaServicios = false;
     }
   }
 
@@ -526,7 +570,7 @@ export class ReciboComponent {
       grupo: 'grupo1',
       precioSello: null,
     };
-    
+
     this.errores = {};
   }
 }
