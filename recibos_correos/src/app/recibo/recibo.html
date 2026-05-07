@@ -49,20 +49,70 @@
         </div>
       </div>
 
-      <!-- FILA 2: Remitente y Destinatario -->
-      <div class="form-row">
-        <div class="form-group">
-          <label>Remitente (Quien envía) <span class="required">*</span></label>
-          <input type="text" class="form-control" [ngClass]="{'error': errores['remitente']}"
-            [(ngModel)]="recibo.remitente" placeholder="Nombre completo" name="remitente" />
-          <span class="error-message" *ngIf="errores['remitente']">{{ errores['remitente'] }}</span>
+      <!-- FILA 2: Remitente y Destinatario (4 campos cada uno) -->
+      <div class="form-row full-width">
+        <div style="flex: 1; padding-right: 10px;">
+          <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px; font-weight: 600;">Remitente (Quien envía)</h4>
+          
+          <div class="form-group">
+            <label>Dirección <span class="required">*</span></label>
+            <input type="text" class="form-control" [ngClass]="{'error': errores['remitenteDir']}"
+              [(ngModel)]="recibo.remitente.direccion" placeholder="Calle y número" name="remitenteDir" />
+            <span class="error-message" *ngIf="errores['remitenteDir']">{{ errores['remitenteDir'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" class="form-control" [ngClass]="{'error': errores['remitenteEmail']}"
+              [(ngModel)]="recibo.remitente.email" placeholder="ejemplo@correo.com" name="remitenteEmail" />
+            <span class="error-message" *ngIf="errores['remitenteEmail']">{{ errores['remitenteEmail'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono <span class="required">*</span></label>
+            <input type="tel" class="form-control" [ngClass]="{'error': errores['remitentePhone']}"
+              [(ngModel)]="recibo.remitente.telefono" placeholder="+504 XXXX-XXXX" name="remitentePhone" />
+            <span class="error-message" *ngIf="errores['remitentePhone']">{{ errores['remitentePhone'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>País <span class="required">*</span></label>
+            <input type="text" class="form-control" [ngClass]="{'error': errores['remitenteCountry']}"
+              [(ngModel)]="recibo.remitente.pais" placeholder="Honduras" name="remitenteCountry" />
+            <span class="error-message" *ngIf="errores['remitenteCountry']">{{ errores['remitenteCountry'] }}</span>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Destinatario (Quien recibe) <span class="required">*</span></label>
-          <input type="text" class="form-control" [ngClass]="{'error': errores['destinatario']}"
-            [(ngModel)]="recibo.destinatario" placeholder="Nombre completo" name="destinatario" />
-          <span class="error-message" *ngIf="errores['destinatario']">{{ errores['destinatario'] }}</span>
+        <div style="flex: 1; padding-left: 10px;">
+          <h4 style="margin: 0 0 15px 0; color: #333; font-size: 14px; font-weight: 600;">Destinatario (Quien recibe)</h4>
+          
+          <div class="form-group">
+            <label>Dirección <span class="required">*</span></label>
+            <input type="text" class="form-control" [ngClass]="{'error': errores['destinatarioDir']}"
+              [(ngModel)]="recibo.destinatario.direccion" placeholder="Calle y número" name="destinatarioDir" />
+            <span class="error-message" *ngIf="errores['destinatarioDir']">{{ errores['destinatarioDir'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" class="form-control" [ngClass]="{'error': errores['destinatarioEmail']}"
+              [(ngModel)]="recibo.destinatario.email" placeholder="ejemplo@correo.com" name="destinatarioEmail" />
+            <span class="error-message" *ngIf="errores['destinatarioEmail']">{{ errores['destinatarioEmail'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono <span class="required">*</span></label>
+            <input type="tel" class="form-control" [ngClass]="{'error': errores['destinatarioPhone']}"
+              [(ngModel)]="recibo.destinatario.telefono" placeholder="+504 XXXX-XXXX" name="destinatarioPhone" />
+            <span class="error-message" *ngIf="errores['destinatarioPhone']">{{ errores['destinatarioPhone'] }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>País <span class="required">*</span></label>
+            <input type="text" class="form-control" [ngClass]="{'error': errores['destinatarioCountry']}"
+              [(ngModel)]="recibo.destinatario.pais" placeholder="Honduras" name="destinatarioCountry" />
+            <span class="error-message" *ngIf="errores['destinatarioCountry']">{{ errores['destinatarioCountry'] }}</span>
+          </div>
         </div>
       </div>
 
@@ -114,7 +164,7 @@
       </div>
 
       <!-- FILA 4: Precio de Sello (Condicional) -->
-      <div class="form-row full-width"
+      <div class="form-row"
         *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
         <div class="form-group">
           <label>Precio del Sello (L.) <span class="required">*</span></label>
@@ -124,6 +174,12 @@
             <option *ngFor="let precio of preciosSello" [ngValue]="precio">L. {{ precio }}</option>
           </select>
           <span class="error-message" *ngIf="errores['precioSello']">{{ errores['precioSello'] }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>Cantidad de Sellos <span class="required">*</span></label>
+          <input type="number" class="form-control" [(ngModel)]="recibo.cantidadSellos"
+            (change)="calcularCosto()" [min]="1" placeholder="1" name="cantidadSellos" />
         </div>
       </div>
 
@@ -226,14 +282,49 @@
           <td class="label">Fecha de Pago:</td>
           <td class="value"><strong>{{ reciboGenerado.fechaPago }}</strong></td>
         </tr>
-        <tr>
-          <td class="label">Remitente:</td>
-          <td class="value"><strong>{{ reciboGenerado.remitente || 'No especificado' }}</strong></td>
+        
+        <!-- Remitente -->
+        <tr style="background-color: #f9f9f9; font-weight: bold;">
+          <td class="label" colspan="2">REMITENTE (Quien envía):</td>
         </tr>
         <tr>
-          <td class="label">Destinatario:</td>
-          <td class="value"><strong>{{ reciboGenerado.destinatario || 'No especificado' }}</strong></td>
+          <td class="label">  Dirección:</td>
+          <td class="value"><strong>{{ reciboGenerado.remitente?.direccion || 'No especificada' }}</strong></td>
         </tr>
+        <tr>
+          <td class="label">  Email:</td>
+          <td class="value"><strong>{{ reciboGenerado.remitente?.email || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">  Teléfono:</td>
+          <td class="value"><strong>{{ reciboGenerado.remitente?.telefono || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">  País:</td>
+          <td class="value"><strong>{{ reciboGenerado.remitente?.pais || 'No especificado' }}</strong></td>
+        </tr>
+
+        <!-- Destinatario -->
+        <tr style="background-color: #f9f9f9; font-weight: bold;">
+          <td class="label" colspan="2">DESTINATARIO (Quien recibe):</td>
+        </tr>
+        <tr>
+          <td class="label">  Dirección:</td>
+          <td class="value"><strong>{{ reciboGenerado.destinatario?.direccion || 'No especificada' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">  Email:</td>
+          <td class="value"><strong>{{ reciboGenerado.destinatario?.email || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">  Teléfono:</td>
+          <td class="value"><strong>{{ reciboGenerado.destinatario?.telefono || 'No especificado' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="label">  País:</td>
+          <td class="value"><strong>{{ reciboGenerado.destinatario?.pais || 'No especificado' }}</strong></td>
+        </tr>
+
         <tr>
           <td class="label">Tipo de Servicio:</td>
           <td class="value"><strong>{{ reciboGenerado.tipoServicio }}</strong></td>

@@ -19,15 +19,26 @@ export class ReciboComponent {
     numero: '',
     oficina: '',
     fecha: '',
-    remitente: '',
-    destinatario: '',
+    remitente: {
+      direccion: '',
+      email: '',
+      telefono: '',
+      pais: ''
+    },
+    destinatario: {
+      direccion: '',
+      email: '',
+      telefono: '',
+      pais: ''
+    },
     concepto: '',
     peso: null as number | null,
     costo: null as number | null,
     tipoServicio: '',
     tipoPago: '',
-    grupo: 'grupo1', // NUEVO: Grupo geográfico
-    precioSello: null as number | null, // NUEVO: Precio del sello (5, 10, 50, 100, 200)
+    grupo: 'grupo1',
+    precioSello: null as number | null,
+    cantidadSellos: 1,
   };
 
   reciboGenerado: any = null;
@@ -179,13 +190,14 @@ export class ReciboComponent {
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
 
     if (esSellos) {
-      // Para sellos: sumar precio del sello + costo del peso según tabla geográfica
+      // Para sellos: sumar precio del sello * cantidad + costo del peso según tabla geográfica
       let costoTotal = 0;
       const precioSelloSeleccionado = Number(this.recibo.precioSello) || 0;
+      const cantidadSellos = Number(this.recibo.cantidadSellos) || 1;
 
       // Agregar precio del sello si está seleccionado
       if (precioSelloSeleccionado > 0) {
-        costoTotal += precioSelloSeleccionado;
+        costoTotal += precioSelloSeleccionado * cantidadSellos;
       }
 
       // Agregar costo del peso según la tabla geográfica
@@ -331,11 +343,38 @@ export class ReciboComponent {
         delete this.errores['fecha'];
       }
     }
-    if (!this.recibo.remitente || this.recibo.remitente.trim() === '') {
-      this.errores['remitente'] = 'El remitente es requerido';
+    if (!this.recibo.remitente.direccion || this.recibo.remitente.direccion.trim() === '') {
+      this.errores['remitenteDir'] = 'La dirección del remitente es requerida';
     }
-    if (!this.recibo.destinatario || this.recibo.destinatario.trim() === '') {
-      this.errores['destinatario'] = 'El destinatario es requerido';
+    if (!this.recibo.remitente.email || this.recibo.remitente.email.trim() === '') {
+      this.errores['remitenteEmail'] = 'El email del remitente es requerido';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.recibo.remitente.email)) {
+      this.errores['remitenteEmail'] = 'El email del remitente no es válido';
+    }
+    if (!this.recibo.remitente.telefono || this.recibo.remitente.telefono.trim() === '') {
+      this.errores['remitentePhone'] = 'El teléfono del remitente es requerido';
+    } else if (!/^[0-9+\-\s()]+$/.test(this.recibo.remitente.telefono)) {
+      this.errores['remitentePhone'] = 'El teléfono del remitente no es válido';
+    }
+    if (!this.recibo.remitente.pais || this.recibo.remitente.pais.trim() === '') {
+      this.errores['remitenteCountry'] = 'El país del remitente es requerido';
+    }
+
+    if (!this.recibo.destinatario.direccion || this.recibo.destinatario.direccion.trim() === '') {
+      this.errores['destinatarioDir'] = 'La dirección del destinatario es requerida';
+    }
+    if (!this.recibo.destinatario.email || this.recibo.destinatario.email.trim() === '') {
+      this.errores['destinatarioEmail'] = 'El email del destinatario es requerido';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.recibo.destinatario.email)) {
+      this.errores['destinatarioEmail'] = 'El email del destinatario no es válido';
+    }
+    if (!this.recibo.destinatario.telefono || this.recibo.destinatario.telefono.trim() === '') {
+      this.errores['destinatarioPhone'] = 'El teléfono del destinatario es requerido';
+    } else if (!/^[0-9+\-\s()]+$/.test(this.recibo.destinatario.telefono)) {
+      this.errores['destinatarioPhone'] = 'El teléfono del destinatario no es válido';
+    }
+    if (!this.recibo.destinatario.pais || this.recibo.destinatario.pais.trim() === '') {
+      this.errores['destinatarioCountry'] = 'El país del destinatario es requerido';
     }
     if (!this.recibo.tipoServicio || this.recibo.tipoServicio.trim() === '') {
       this.errores['tipoServicio'] = 'Seleccione un tipo de servicio';
@@ -539,8 +578,18 @@ export class ReciboComponent {
       numero: '',
       oficina: '',
       fecha: this.fechaHoy,
-      remitente: '',
-      destinatario: '',
+      remitente: {
+        direccion: '',
+        email: '',
+        telefono: '',
+        pais: ''
+      },
+      destinatario: {
+        direccion: '',
+        email: '',
+        telefono: '',
+        pais: ''
+      },
       concepto: '',
       peso: null,
       costo: null,
@@ -548,6 +597,7 @@ export class ReciboComponent {
       tipoPago: '',
       grupo: 'grupo1',
       precioSello: null,
+      cantidadSellos: 1,
     };
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
@@ -560,8 +610,18 @@ export class ReciboComponent {
       numero: '',
       oficina: '',
       fecha: this.fechaHoy,
-      remitente: '',
-      destinatario: '',
+      remitente: {
+        direccion: '',
+        email: '',
+        telefono: '',
+        pais: ''
+      },
+      destinatario: {
+        direccion: '',
+        email: '',
+        telefono: '',
+        pais: ''
+      },
       concepto: '',
       peso: null,
       costo: null,
@@ -569,8 +629,10 @@ export class ReciboComponent {
       tipoPago: '',
       grupo: 'grupo1',
       precioSello: null,
+      cantidadSellos: 1,
     };
-
+    this.reciboGenerado = null;
+    this.numeroRecibo = Math.floor(Math.random() * 1000000);
     this.errores = {};
   }
 }
