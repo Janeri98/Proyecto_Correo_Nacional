@@ -44,7 +44,7 @@ export class ReciboComponent {
   reciboGenerado: any = null;
   numeroRecibo = Math.floor(Math.random() * 1000000);
   errores: { [key: string]: string } = {};
-  fechaHoy: string = ''; // NUEVO: Fecha de hoy únicamente permitida
+  fechaHoy: string = ''; // NUEVO: Fecha de hoy únicamente permitidas
   busquedaServicio: string = ''; // NUEVO: Variable para búsqueda de servicios
   mostrarListaServicios: boolean = false; // NUEVO: Mostrar lista de servicios
   servicioSeleccionadoIndex: number = -1; // NUEVO: Índice del servicio seleccionado
