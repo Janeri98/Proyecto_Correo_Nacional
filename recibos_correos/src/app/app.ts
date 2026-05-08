@@ -13,23 +13,42 @@ import { FormsModule } from '@angular/forms';
 export class AppComponent {
   usuarioAutenticado: boolean = false;
   usuarioActual: string = '';
+  usuarioRol: string = '';
+  usuarioDepartamento: string = '';
+  usuarioMunicipio: string = '';
+  usuarioFechaCreacion: string = '';
   mostrarModalLogin: boolean = false;
   
-  // Campos del formulario de login
+  // Campos del formulario de login / creación de usuario
   formularioLogin = {
     nombre: '',
     correo: '',
     direccion: '',
-    telefono: ''
+    telefono: '',
+    rol: '',
+    departamento: '',
+    municipio: ''
   };
   
   erroresLogin: { [key: string]: string } = {};
+  
+  roles = ['Master', 'Administrador', 'Usuario'];
+  departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
+  municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
   constructor(private router: Router) {}
   
   abrirLogin() {
     this.mostrarModalLogin = true;
-    this.formularioLogin = { nombre: '', correo: '', direccion: '', telefono: '' };
+    this.formularioLogin = {
+      nombre: '',
+      correo: '',
+      direccion: '',
+      telefono: '',
+      rol: '',
+      departamento: '',
+      municipio: ''
+    };
     this.erroresLogin = {};
   }
 
@@ -63,6 +82,17 @@ export class AppComponent {
     } else if (!telefonoRegex.test(this.formularioLogin.telefono.trim())) {
       this.erroresLogin['telefono'] = 'Teléfono inválido';
     }
+
+    // Validar rol y ubicación
+    if (!this.formularioLogin.rol.trim()) {
+      this.erroresLogin['rol'] = 'El rol es requerido';
+    }
+    if (!this.formularioLogin.departamento.trim()) {
+      this.erroresLogin['departamento'] = 'El departamento es requerido';
+    }
+    if (!this.formularioLogin.municipio.trim()) {
+      this.erroresLogin['municipio'] = 'El municipio es requerido';
+    }
     
     return Object.keys(this.erroresLogin).length === 0;
   }
@@ -70,12 +100,27 @@ export class AppComponent {
   iniciarSesion() {
     if (this.validarFormularioLogin()) {
       this.usuarioActual = this.formularioLogin.nombre.trim();
+      this.usuarioRol = this.formularioLogin.rol;
+      this.usuarioDepartamento = this.formularioLogin.departamento;
+      this.usuarioMunicipio = this.formularioLogin.municipio;
       this.usuarioAutenticado = true;
       this.mostrarModalLogin = false;
+      
+      // Verificar si ya existe fecha de creación, si no, crearla
+      const fechaExistente = localStorage.getItem('usuarioFechaCreacion');
+      if (!fechaExistente) {
+        this.usuarioFechaCreacion = new Date().toISOString().split('T')[0]; // Fecha en formato YYYY-MM-DD
+        localStorage.setItem('usuarioFechaCreacion', this.usuarioFechaCreacion);
+      } else {
+        this.usuarioFechaCreacion = fechaExistente;
+      }
       
       // Guardar en localStorage para persistencia
       localStorage.setItem('usuarioAutenticado', 'true');
       localStorage.setItem('usuarioActual', this.usuarioActual);
+      localStorage.setItem('usuarioRol', this.usuarioRol);
+      localStorage.setItem('usuarioDepartamento', this.usuarioDepartamento);
+      localStorage.setItem('usuarioMunicipio', this.usuarioMunicipio);
       localStorage.setItem('usuarioEmail', this.formularioLogin.correo);
       localStorage.setItem('usuarioDireccion', this.formularioLogin.direccion);
       localStorage.setItem('usuarioTelefono', this.formularioLogin.telefono);
@@ -93,12 +138,28 @@ export class AppComponent {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
       this.usuarioAutenticado = false;
       this.usuarioActual = '';
+      this.usuarioRol = '';
+      this.usuarioDepartamento = '';
+      this.usuarioMunicipio = '';
+      this.usuarioFechaCreacion = '';
       this.mostrarModalLogin = false;
-      this.formularioLogin = { nombre: '', correo: '', direccion: '', telefono: '' };
+      this.formularioLogin = {
+        nombre: '',
+        correo: '',
+        direccion: '',
+        telefono: '',
+        rol: '',
+        departamento: '',
+        municipio: ''
+      };
       
       // Limpiar localStorage
       localStorage.removeItem('usuarioAutenticado');
       localStorage.removeItem('usuarioActual');
+      localStorage.removeItem('usuarioRol');
+      localStorage.removeItem('usuarioDepartamento');
+      localStorage.removeItem('usuarioMunicipio');
+      localStorage.removeItem('usuarioFechaCreacion');
       localStorage.removeItem('usuarioEmail');
       localStorage.removeItem('usuarioDireccion');
       localStorage.removeItem('usuarioTelefono');
@@ -110,6 +171,10 @@ export class AppComponent {
     const sesionGuardada = localStorage.getItem('usuarioAutenticado');
     if (sesionGuardada === 'true') {
       this.usuarioActual = localStorage.getItem('usuarioActual') || '';
+      this.usuarioRol = localStorage.getItem('usuarioRol') || '';
+      this.usuarioDepartamento = localStorage.getItem('usuarioDepartamento') || '';
+      this.usuarioMunicipio = localStorage.getItem('usuarioMunicipio') || '';
+      this.usuarioFechaCreacion = localStorage.getItem('usuarioFechaCreacion') || '';
       this.usuarioAutenticado = true;
     }
   }

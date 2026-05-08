@@ -70,7 +70,8 @@
           <div class="user-info">
             <p class="user-name" *ngIf="usuarioAutenticado">{{ usuarioActual }}</p>
             <p class="user-name" *ngIf="!usuarioAutenticado">No autenticado</p>
-            <p class="user-role" *ngIf="usuarioAutenticado">Tesorería</p>
+            <p class="user-role" *ngIf="usuarioAutenticado">{{ usuarioRol }} - {{ usuarioDepartamento }} / {{ usuarioMunicipio }}</p>
+            <p class="user-role" *ngIf="usuarioAutenticado && usuarioFechaCreacion">Creado: {{ usuarioFechaCreacion }}</p>
             <p class="user-role" *ngIf="!usuarioAutenticado">Inicia sesión</p>
           </div>
           <i class="dropdown-icon">▼</i>
@@ -147,6 +148,51 @@
           placeholder="+504 9999-9999"
           name="telefono" />
         <span class="error-message" *ngIf="erroresLogin['telefono']">{{ erroresLogin['telefono'] }}</span>
+      </div>
+
+      <!-- Campo Rol -->
+      <div class="form-group">
+        <label for="rol">Rol de Usuario <span class="required">*</span></label>
+        <select
+          id="rol"
+          class="form-control"
+          [(ngModel)]="formularioLogin.rol"
+          [class.error]="erroresLogin['rol']"
+          name="rol">
+          <option value="">Seleccione un rol...</option>
+          <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+        </select>
+        <span class="error-message" *ngIf="erroresLogin['rol']">{{ erroresLogin['rol'] }}</span>
+      </div>
+
+      <!-- Campo Departamento -->
+      <div class="form-group">
+        <label for="departamento">Departamento <span class="required">*</span></label>
+        <select
+          id="departamento"
+          class="form-control"
+          [(ngModel)]="formularioLogin.departamento"
+          [class.error]="erroresLogin['departamento']"
+          name="departamento">
+          <option value="">Seleccione departamento...</option>
+          <option *ngFor="let departamento of departamentos" [value]="departamento">{{ departamento }}</option>
+        </select>
+        <span class="error-message" *ngIf="erroresLogin['departamento']">{{ erroresLogin['departamento'] }}</span>
+      </div>
+
+      <!-- Campo Municipio -->
+      <div class="form-group">
+        <label for="municipio">Municipio <span class="required">*</span></label>
+        <select
+          id="municipio"
+          class="form-control"
+          [(ngModel)]="formularioLogin.municipio"
+          [class.error]="erroresLogin['municipio']"
+          name="municipio">
+          <option value="">Seleccione municipio...</option>
+          <option *ngFor="let municipio of municipios" [value]="municipio">{{ municipio }}</option>
+        </select>
+        <span class="error-message" *ngIf="erroresLogin['municipio']">{{ erroresLogin['municipio'] }}</span>
       </div>
     </div>
     <div class="modal-footer">
