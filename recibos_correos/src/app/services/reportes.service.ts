@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RecibosStorageService, Recibo } from './recibos-storage.service';
+import { AuthService } from './auth.service';
 
 export interface Venta {
   id: number;
@@ -23,10 +24,16 @@ export interface ReporteData {
   providedIn: 'root'
 })
 export class ReportesService {
-  constructor(private recibosStorage: RecibosStorageService) {}
+  constructor(private recibosStorage: RecibosStorageService, private authService: AuthService) {}
 
   obtenerVentas(): Venta[] {
-    const recibos = this.recibosStorage.obtenerRecibos();
+    const usuario = this.authService.getUsuarioActual();
+    let recibos = this.recibosStorage.obtenerRecibos();
+
+    if (usuario && !this.authService.tienePermiso(usuario)) {
+      return []; // Usuario no puede ver reportes
+    }
+
     return recibos.map((recibo, index) => ({
       id: index + 1,
       numero: recibo.numero || index + 1,
@@ -40,10 +47,17 @@ export class ReportesService {
   }
 
   obtenerRecibosPorPeriodo(fechaInicio: string, fechaFin: string): Recibo[] {
-    return this.recibosStorage.obtenerRecibos().filter(recibo => {
+    const usuario = this.authService.getUsuarioActual();
+    let recibos = this.recibosStorage.obtenerRecibos().filter(recibo => {
       const fecha = recibo.fechaPago || recibo.fecha;
       return fecha >= fechaInicio && fecha <= fechaFin;
     });
+
+    if (usuario && !this.authService.tienePermiso(usuario)) {
+      return []; // Usuario no puede ver reportes
+    }
+
+    return recibos;
   }
 
   obtenerReporteDiario(fecha: string): ReporteData {
@@ -133,5 +147,46 @@ export class ReportesService {
         monto: datos.monto
       }))
       .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  }
+
+  obtenerReporteFiltrado(
+    fechaInicio: string,
+    fechaFin: string,
+    municipio?: string,
+    departamento?: string
+  ): Venta[] {
+    let recibos = this.recibosStorage.obtenerRecibos().filter(recibo => {
+      const fecha = recibo.fechaPago || recibo.fecha;
+      let cumpleFecha = fecha >= fechaInicio && fecha <= fechaFin;
+      let cumpleMunicipio = !municipio || recibo.municipio === municipio;
+      let cumpleDepartamento = !departamento || recibo.departamento === departamento;
+      return cumpleFecha && cumpleMunicipio && cumpleDepartamento;
+    });
+
+    const usuario = this.authService.getUsuarioActual();
+    if (usuario && !this.authService.tienePermiso(usuario)) {
+      return []; // Usuario no puede ver reportes
+    }
+
+    return recibos.map((recibo, index) => ({
+      id: index + 1,
+      numero: recibo.numero || index + 1,
+      fecha: recibo.fechaPago || recibo.fecha,
+      servicio: recibo.tipoServicio,
+      cantidad: 1,
+      monto: Number(recibo.total) || 0,
+      oficina: recibo.oficina,
+      tipoPago: recibo.tipoPago || ''
+    }));
+  }
+
+  obtenerMunicipios(): string[] {
+    const recibos = this.recibosStorage.obtenerRecibos();
+    return [...new Set(recibos.map(r => r.municipio).filter(m => m))];
+  }
+
+  obtenerDepartamentos(): string[] {
+    const recibos = this.recibosStorage.obtenerRecibos();
+    return [...new Set(recibos.map(r => r.departamento).filter(d => d))];
   }
 }

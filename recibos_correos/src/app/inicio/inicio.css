@@ -35,6 +35,10 @@
   border-radius: 8px;
   background: #f8f9fa;
   transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  color: inherit;
 }
 
 .feature:hover {

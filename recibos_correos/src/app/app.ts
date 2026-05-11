@@ -18,6 +18,7 @@ export class AppComponent {
   usuarioMunicipio: string = '';
   usuarioFechaCreacion: string = '';
   mostrarModalLogin: boolean = false;
+  mostrarModalConfirmacion: boolean = false;
   
   // Campos del formulario de login / creación de usuario
   formularioLogin = {
@@ -32,7 +33,7 @@ export class AppComponent {
   
   erroresLogin: { [key: string]: string } = {};
   
-  roles = ['Master', 'Administrador', 'Usuario'];
+  roles = ['Admin (Master)', 'Usuario'];
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
@@ -135,35 +136,44 @@ export class AppComponent {
   }
 
   cerrarSesion() {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-      this.usuarioAutenticado = false;
-      this.usuarioActual = '';
-      this.usuarioRol = '';
-      this.usuarioDepartamento = '';
-      this.usuarioMunicipio = '';
-      this.usuarioFechaCreacion = '';
-      this.mostrarModalLogin = false;
-      this.formularioLogin = {
-        nombre: '',
-        correo: '',
-        direccion: '',
-        telefono: '',
-        rol: '',
-        departamento: '',
-        municipio: ''
-      };
-      
-      // Limpiar localStorage
-      localStorage.removeItem('usuarioAutenticado');
-      localStorage.removeItem('usuarioActual');
-      localStorage.removeItem('usuarioRol');
-      localStorage.removeItem('usuarioDepartamento');
-      localStorage.removeItem('usuarioMunicipio');
-      localStorage.removeItem('usuarioFechaCreacion');
-      localStorage.removeItem('usuarioEmail');
-      localStorage.removeItem('usuarioDireccion');
-      localStorage.removeItem('usuarioTelefono');
-    }
+    this.mostrarModalConfirmacion = true;
+  }
+
+  confirmarCerrarSesion() {
+    this.usuarioAutenticado = false;
+    this.usuarioActual = '';
+    this.usuarioRol = '';
+    this.usuarioDepartamento = '';
+    this.usuarioMunicipio = '';
+    this.usuarioFechaCreacion = '';
+    this.mostrarModalConfirmacion = false;
+    this.formularioLogin = {
+      nombre: '',
+      correo: '',
+      direccion: '',
+      telefono: '',
+      rol: '',
+      departamento: '',
+      municipio: ''
+    };
+    
+    // Limpiar localStorage
+    localStorage.removeItem('usuarioAutenticado');
+    localStorage.removeItem('usuarioActual');
+    localStorage.removeItem('usuarioRol');
+    localStorage.removeItem('usuarioDepartamento');
+    localStorage.removeItem('usuarioMunicipio');
+    localStorage.removeItem('usuarioFechaCreacion');
+    localStorage.removeItem('usuarioEmail');
+    localStorage.removeItem('usuarioDireccion');
+    localStorage.removeItem('usuarioTelefono');
+    
+    // Redirigir a inicio
+    this.router.navigate(['/inicio']);
+  }
+
+  cancelarCerrarSesion() {
+    this.mostrarModalConfirmacion = false;
   }
 
   ngOnInit() {

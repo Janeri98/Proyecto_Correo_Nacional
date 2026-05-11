@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RecibosStorageService } from '../services/recibos-storage.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { AuthService, Usuario } from '../services/auth.service';
 
 @Component({
   selector: 'app-recibo',
@@ -39,6 +40,8 @@ export class ReciboComponent {
     grupo: 'grupo1',
     precioSello: null as number | null,
     cantidadSellos: 1,
+    departamento: '',
+    municipio: ''
   };
 
   reciboGenerado: any = null;
@@ -94,12 +97,24 @@ export class ReciboComponent {
     { id: 'grupo5', nombre: 'Resto del Mundo (GRUPO V)' },
   ];
 
-  constructor(private recibosStorage: RecibosStorageService) {
+  constructor(private recibosStorage: RecibosStorageService, private authService: AuthService) {
     // NUEVO: Inicializar fecha a hoy únicamente
     const hoy = new Date();
     this.fechaHoy = hoy.toISOString().split('T')[0];
     this.recibo.fecha = this.fechaHoy; // Pre-llenar con la fecha de hoy
     this.recibo.precioSello = null; // Inicializar precio del sello
+  }
+
+  ngOnInit() {
+    this.asignarUsuario();
+  }
+
+  asignarUsuario() {
+    const usuario = this.authService.getUsuarioActual();
+    if (usuario) {
+      this.recibo.departamento = usuario.departamento;
+      this.recibo.municipio = usuario.municipio;
+    }
   }
 
   // NUEVO: Tabla de precios por rango de peso y grupo geográfico
@@ -598,7 +613,10 @@ export class ReciboComponent {
       grupo: 'grupo1',
       precioSello: null,
       cantidadSellos: 1,
+      departamento: '',
+      municipio: ''
     };
+    this.asignarUsuario();
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
     this.errores = {};
@@ -630,7 +648,10 @@ export class ReciboComponent {
       grupo: 'grupo1',
       precioSello: null,
       cantidadSellos: 1,
+      departamento: '',
+      municipio: ''
     };
+    this.asignarUsuario();
     this.reciboGenerado = null;
     this.numeroRecibo = Math.floor(Math.random() * 1000000);
     this.errores = {};

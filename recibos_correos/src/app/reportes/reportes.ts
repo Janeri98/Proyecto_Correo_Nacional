@@ -23,6 +23,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
   monthSeleccionado: string = '';
   fechaInicio: string = '';
   fechaFin: string = '';
+  municipioSeleccionado: string = '';
+  departamentoSeleccionado: string = '';
+
+  municipios: string[] = [];
+  departamentos: string[] = [];
 
   ventasTabla: any[] = [];
   resumenServicio: any[] = [];
@@ -35,6 +40,8 @@ export class ReportesComponent implements OnInit, OnDestroy {
   mostrarGraficos: boolean = true;
   moneda: string = 'HNL';
   simboloMoneda: string = 'L. ';
+  mostrarModalCierreDia: boolean = false;
+  diaCerrado: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -46,9 +53,22 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.monthSeleccionado = this.obtenerMesActual();
     this.fechaInicio = this.obtenerFechaHoy();
     this.fechaFin = this.obtenerFechaHoy();
+    this.cargarFiltros();
+  }
+
+  private cargarFiltros(): void {
+    this.municipios = this.reportesService.obtenerMunicipios();
+    this.departamentos = this.reportesService.obtenerDepartamentos();
+  }
+
+  private verificarDiaCerrado(): void {
+    const fechaHoy = this.obtenerFechaHoy();
+    const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
+    this.diaCerrado = diasCerrados.includes(fechaHoy);
   }
 
   ngOnInit(): void {
+    this.verificarDiaCerrado();
     this.cargarReporte();
     this.recibosStorage.recibos$
       .pipe(takeUntil(this.destroy$))
@@ -66,9 +86,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
     if (this.tipoReporte === 'diario') {
       const fecha = this.fechaSeleccionada || this.obtenerFechaHoy();
       this.fechaSeleccionada = fecha;
-      const ventas = this.reportesService.obtenerReportePeriodo(
+      const ventas = this.reportesService.obtenerReporteFiltrado(
         fecha,
-        fecha
+        fecha,
+        this.municipioSeleccionado,
+        this.departamentoSeleccionado
       );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
@@ -89,7 +111,12 @@ export class ReportesComponent implements OnInit, OnDestroy {
         .toISOString()
         .split('T')[0];
 
-      const ventas = this.reportesService.obtenerReportePeriodo(primerDia, ultimoDia);
+      const ventas = this.reportesService.obtenerReporteFiltrado(
+        primerDia,
+        ultimoDia,
+        this.municipioSeleccionado,
+        this.departamentoSeleccionado
+      );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
       this.resumenServicio = this.reportesService.obtenerResumenPorServicio(
@@ -106,9 +133,11 @@ export class ReportesComponent implements OnInit, OnDestroy {
       const fin = this.fechaFin || inicio;
       this.fechaInicio = inicio;
       this.fechaFin = fin;
-      const ventas = this.reportesService.obtenerReportePeriodo(
+      const ventas = this.reportesService.obtenerReporteFiltrado(
         inicio,
-        fin
+        fin,
+        this.municipioSeleccionado,
+        this.departamentoSeleccionado
       );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
@@ -141,6 +170,47 @@ export class ReportesComponent implements OnInit, OnDestroy {
     const year = hoy.getFullYear();
     const month = String(hoy.getMonth() + 1).padStart(2, '0');
     return `${year}-${month}`;
+  }
+
+  abrirModalCierreDia(): void {
+    if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0) {
+      this.mostrarModalCierreDia = true;
+    } else if (this.ventasTabla.length === 0) {
+      alert('No hay transacciones para cerrar el día.');
+    } else {
+      alert('Solo puedes cerrar el día desde el reporte diario.');
+    }
+  }
+
+  confirmarCierreDia(): void {
+    const fechaHoy = this.obtenerFechaHoy();
+    const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
+    
+    if (!diasCerrados.includes(fechaHoy)) {
+      diasCerrados.push(fechaHoy);
+      localStorage.setItem('diasCerrados', JSON.stringify(diasCerrados));
+    }
+
+    // Guardar resumen del cierre
+    const resumenCierre = {
+      fecha: fechaHoy,
+      totalTransacciones: this.totalVentas,
+      totalMonto: this.totalMonto,
+      fechaCierre: new Date().toISOString(),
+      usuario: localStorage.getItem('usuarioActual') || 'Desconocido'
+    };
+
+    const cierres = JSON.parse(localStorage.getItem('cierresDia') || '[]');
+    cierres.push(resumenCierre);
+    localStorage.setItem('cierresDia', JSON.stringify(cierres));
+
+    this.diaCerrado = true;
+    this.mostrarModalCierreDia = false;
+    alert(`✓ Día cerrado correctamente.\n\nFecha: ${fechaHoy}\nTotal: ${this.simboloMoneda}${this.totalMonto.toFixed(2)}\nTransacciones: ${this.totalVentas}`);
+  }
+
+  cancelarCierreDia(): void {
+    this.mostrarModalCierreDia = false;
   }
 
   exportarPDF(): void {

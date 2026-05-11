@@ -205,3 +205,24 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Confirmación de Cierre de Sesión -->
+<div class="modal-overlay" *ngIf="mostrarModalConfirmacion" (click)="cancelarCerrarSesion()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Cierre de Sesión</h2>
+      <button class="btn-close" (click)="cancelarCerrarSesion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>¿Estás seguro de que deseas cerrar sesión? Se perderán los cambios no guardados.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancelarCerrarSesion()">
+        Cancelar
+      </button>
+      <button class="btn btn-danger" (click)="confirmarCerrarSesion()">
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</div>

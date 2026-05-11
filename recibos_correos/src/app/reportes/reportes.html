@@ -13,8 +13,9 @@
       <h5 class="mb-0">Filtros de Reporte</h5>
     </div>
     <div class="card-body">
+      <!-- Fila 1: Tipo de Reporte y Ubicación -->
       <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label fw-bold">Tipo de Reporte</label>
           <select
             class="form-select"
@@ -27,8 +28,32 @@
           </select>
         </div>
 
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Departamento</label>
+          <select
+            class="form-select"
+            [(ngModel)]="departamentoSeleccionado"
+            (change)="cargarReporte()"
+          >
+            <option value="">Todos los Departamentos</option>
+            <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-bold">Municipio</label>
+          <select
+            class="form-select"
+            [(ngModel)]="municipioSeleccionado"
+            (change)="cargarReporte()"
+          >
+            <option value="">Todos los Municipios</option>
+            <option *ngFor="let mun of municipios" [value]="mun">{{ mun }}</option>
+          </select>
+        </div>
+
         <!-- Filtro Diario -->
-        <div class="col-md-4" *ngIf="tipoReporte === 'diario'">
+        <div class="col-md-3" *ngIf="tipoReporte === 'diario'">
           <label class="form-label fw-bold">Selecciona una Fecha</label>
           <input
             type="date"
@@ -39,7 +64,7 @@
         </div>
 
         <!-- Filtro Mensual -->
-        <div class="col-md-4" *ngIf="tipoReporte === 'mensual'">
+        <div class="col-md-3" *ngIf="tipoReporte === 'mensual'">
           <label class="form-label fw-bold">Selecciona un Mes</label>
           <input
             type="month"
@@ -48,9 +73,11 @@
             (change)="cargarReporte()"
           />
         </div>
+      </div>
 
-        <!-- Filtro Personalizado -->
-        <ng-container *ngIf="tipoReporte === 'personalizado'">
+      <!-- Fila 2: Fechas Personalizadas -->
+      <ng-container *ngIf="tipoReporte === 'personalizado'">
+        <div class="row mb-3">
           <div class="col-md-3">
             <label class="form-label fw-bold">Fecha Inicio</label>
             <input
@@ -69,7 +96,7 @@
               (change)="cargarReporte()"
             />
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <label class="form-label fw-bold">&nbsp;</label>
             <button
               class="btn btn-primary w-100"
@@ -78,8 +105,8 @@
               Filtrar
             </button>
           </div>
-        </ng-container>
-      </div>
+        </div>
+      </ng-container>
 
       <!-- Opciones de Visualización -->
       <div class="row">
@@ -174,9 +201,17 @@
     <div class="col-md-6">
       <div class="card bg-success text-white shadow-sm">
         <div class="card-body text-center">
-          <h5 class="card-title">Monto Total</h5>
+          <h5 class="card-title">Monto Total del Día</h5>
           <h2 class="display-4 fw-bold">{{ simboloMoneda }}{{ totalMonto.toFixed(2) }}</h2>
           <p class="card-text">Ingresos totales</p>
+          <button 
+            class="btn btn-warning fw-bold mt-3" 
+            (click)="abrirModalCierreDia()"
+            [disabled]="diaCerrado"
+            [ngClass]="{'btn-light': diaCerrado}">
+            <i class="bi bi-check-circle"></i> 
+            {{ diaCerrado ? '✓ Día Cerrado' : 'Cerrar Día' }}
+          </button>
         </div>
       </div>
     </div>
@@ -315,6 +350,33 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación de Cierre de Día -->
+  <div class="modal-overlay" *ngIf="mostrarModalCierreDia" (click)="cancelarCierreDia()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Confirmar Cierre de Día</h2>
+        <button class="btn-close" (click)="cancelarCierreDia()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning" role="alert">
+          <strong>⚠️ Advertencia:</strong> Una vez cerrado el día, no podrás generar más recibos para esta fecha.
+        </div>
+        <p><strong>Fecha:</strong> {{ fechaSeleccionada }}</p>
+        <p><strong>Total de Transacciones:</strong> {{ totalVentas }}</p>
+        <p><strong>Monto Total:</strong> <span class="text-success fw-bold">{{ simboloMoneda }}{{ totalMonto.toFixed(2) }}</span></p>
+        <p class="text-muted small">¿Deseas proceder con el cierre del día?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cancelarCierreDia()">
+          Cancelar
+        </button>
+        <button class="btn btn-success" (click)="confirmarCierreDia()">
+          ✓ Cerrar Día
+        </button>
       </div>
     </div>
   </div>

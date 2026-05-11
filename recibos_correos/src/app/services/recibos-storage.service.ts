@@ -15,6 +15,8 @@ export interface Recibo {
   grupo: string;
   fechaPago: string;
   total: number;
+  departamento: string;
+  municipio: string;
 }
 
 @Injectable({
