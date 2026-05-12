@@ -154,6 +154,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
         this.fechaFin
       );
     }
+    this.verificarDiaCerrado();
   }
 
   private calcularTotales(ventas: any[]): void {
@@ -173,11 +174,19 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   abrirModalCierreDia(): void {
+    console.log('Botón Cerrar Día clickeado');
+    console.log('tipoReporte:', this.tipoReporte);
+    console.log('ventasTabla.length:', this.ventasTabla.length);
+    console.log('diaCerrado:', this.diaCerrado);
+    
     if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0) {
+      console.log('Abriendo modal de cierre de día');
       this.mostrarModalCierreDia = true;
     } else if (this.ventasTabla.length === 0) {
+      console.log('No hay transacciones');
       alert('No hay transacciones para cerrar el día.');
     } else {
+      console.log('No es reporte diario');
       alert('Solo puedes cerrar el día desde el reporte diario.');
     }
   }
