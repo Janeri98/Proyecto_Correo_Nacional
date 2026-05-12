@@ -1,11 +1,22 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './inicio.html',
   styleUrls: ['./inicio.css']
 })
-export class InicioComponent {}
+export class InicioComponent {
+  mensajeAcceso: string = '';
+
+  constructor(private route: ActivatedRoute) {
+    this.route.queryParams.subscribe(params => {
+      if (params['mensaje']) {
+        this.mensajeAcceso = params['mensaje'];
+      }
+    });
+  }
+}

@@ -65,6 +65,10 @@ export class ReportesComponent implements OnInit, OnDestroy {
     const fechaHoy = this.obtenerFechaHoy();
     const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
     this.diaCerrado = diasCerrados.includes(fechaHoy);
+    console.log('=== verificarDiaCerrado ===');
+    console.log('fechaHoy:', fechaHoy);
+    console.log('diasCerrados:', diasCerrados);
+    console.log('diaCerrado:', this.diaCerrado);
   }
 
   ngOnInit(): void {
@@ -83,9 +87,14 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   cargarReporte(): void {
+    console.log('=== INICIO cargarReporte ===');
+    console.log('tipoReporte:', this.tipoReporte);
+    console.log('fechaSeleccionada:', this.fechaSeleccionada);
+
     if (this.tipoReporte === 'diario') {
       const fecha = this.fechaSeleccionada || this.obtenerFechaHoy();
       this.fechaSeleccionada = fecha;
+      console.log('Cargando reporte diario para fecha:', fecha);
       const ventas = this.reportesService.obtenerReporteFiltrado(
         fecha,
         fecha,
@@ -94,6 +103,9 @@ export class ReportesComponent implements OnInit, OnDestroy {
       );
       this.ventasTabla = ventas;
       this.calcularTotales(ventas);
+      console.log('Ventas obtenidas:', ventas.length);
+      console.log('Total ventas:', this.totalVentas);
+      console.log('Total monto:', this.totalMonto);
       this.resumenServicio = this.reportesService.obtenerResumenPorServicio(
         this.fechaSeleccionada,
         this.fechaSeleccionada
@@ -155,6 +167,8 @@ export class ReportesComponent implements OnInit, OnDestroy {
       );
     }
     this.verificarDiaCerrado();
+    console.log('diaCerrado después de verificar:', this.diaCerrado);
+    console.log('=== FIN cargarReporte ===');
   }
 
   private calcularTotales(ventas: any[]): void {
@@ -174,11 +188,14 @@ export class ReportesComponent implements OnInit, OnDestroy {
   }
 
   abrirModalCierreDia(): void {
+    console.log('=== INICIO abrirModalCierreDia ===');
     console.log('Botón Cerrar Día clickeado');
     console.log('tipoReporte:', this.tipoReporte);
     console.log('ventasTabla.length:', this.ventasTabla.length);
     console.log('diaCerrado:', this.diaCerrado);
-    
+    console.log('totalVentas:', this.totalVentas);
+    console.log('totalMonto:', this.totalMonto);
+
     if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0) {
       console.log('Abriendo modal de cierre de día');
       this.mostrarModalCierreDia = true;
@@ -189,6 +206,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
       console.log('No es reporte diario');
       alert('Solo puedes cerrar el día desde el reporte diario.');
     }
+    console.log('=== FIN abrirModalCierreDia ===');
   }
 
   confirmarCierreDia(): void {

@@ -3,6 +3,11 @@
     <h1>Bienvenido al Sistema de Gestión</h1>
     <p>Correos de Honduras - Recibos de Pago</p>
 
+    <div *ngIf="mensajeAcceso" class="alert alert-warning alert-dismissible fade show" role="alert">
+      <strong>Atención:</strong> {{ mensajeAcceso }}
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="mensajeAcceso = ''"></button>
+    </div>
+
     <div class="features">
       <a routerLink="/recibo" class="feature">
         <div class="icon">📋</div>
