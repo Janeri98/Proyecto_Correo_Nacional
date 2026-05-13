@@ -458,13 +458,15 @@ export class ReciboComponent {
     }
 
     const nombreArchivo = `Recibo_${this.reciboGenerado.numero}.pdf`;
+    elemento.classList.add('pdf-ticket');
 
     // Ocultar los botones temporalmente
-    const botonesDiv = elemento.querySelector('.no-print') as HTMLElement;
-    const displayOriginal = botonesDiv?.style.display;
-    if (botonesDiv) {
-      botonesDiv.style.display = 'none';
-    }
+    const elementosNoPrint = elemento.querySelectorAll<HTMLElement>('.no-print');
+    const displayOriginales: string[] = [];
+    elementosNoPrint.forEach((boton) => {
+      displayOriginales.push(boton.style.display || '');
+      boton.style.display = 'none';
+    });
 
     html2canvas(elemento, {
       scale: 2,
@@ -473,9 +475,10 @@ export class ReciboComponent {
       backgroundColor: '#ffffff',
     }).then((canvas) => {
       // Restaurar los botones
-      if (botonesDiv) {
-        botonesDiv.style.display = displayOriginal || '';
-      }
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });
+      elemento.classList.remove('pdf-ticket');
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -493,9 +496,10 @@ export class ReciboComponent {
       pdf.save(nombreArchivo);
     }).catch(() => {
       // En caso de error, restaurar los botones
-      if (botonesDiv) {
-        botonesDiv.style.display = displayOriginal || '';
-      }
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });
+      elemento.classList.remove('pdf-ticket');
     });
   }
 
@@ -512,12 +516,15 @@ export class ReciboComponent {
       return;
     }
 
+    elemento.classList.add('pdf-ticket');
+
     // Ocultar los botones temporalmente
-    const botonesDiv = elemento.querySelector('.no-print') as HTMLElement;
-    const displayOriginal = botonesDiv?.style.display;
-    if (botonesDiv) {
-      botonesDiv.style.display = 'none';
-    }
+    const elementosNoPrint = elemento.querySelectorAll<HTMLElement>('.no-print');
+    const displayOriginales: string[] = [];
+    elementosNoPrint.forEach((boton) => {
+      displayOriginales.push(boton.style.display || '');
+      boton.style.display = 'none';
+    });
 
     html2canvas(elemento, {
       scale: 2,
@@ -526,15 +533,16 @@ export class ReciboComponent {
       backgroundColor: '#ffffff',
     }).then((canvas) => {
       // Restaurar los botones
-      if (botonesDiv) {
-        botonesDiv.style.display = displayOriginal || '';
-      }
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });
+      elemento.classList.remove('pdf-ticket');
 
       // Convertir canvas a imagen PNG
       const imagenURL = canvas.toDataURL('image/png');
 
       // Crear un mensaje de texto para acompañar
-      const mensaje = `🧾 *RECIBO DE PAGO - CORREOS DE HONDURAS*\n\n*Recibo Nº:* ${this.reciboGenerado.numero}\n*Oficina:* ${this.reciboGenerado.oficina}\n*Fecha:* ${this.reciboGenerado.fechaPago}\n*Remitente:* ${this.reciboGenerado.remitente}\n*Destinatario:* ${this.reciboGenerado.destinatario}\n*Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}\n*Tipo de Pago:* ${this.reciboGenerado.tipoPago || 'No especificado'}\n*Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}\n*Peso:* ${this.reciboGenerado.peso || '0'} g\n*TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n\n¡Gracias por usar los servicios de Correos de Honduras!`;
+      const mensaje = `🧾 *RECIBO DE PAGO - CORREOS DE HONDURAS*\n\n*Recibo Nº:* ${this.reciboGenerado.numero}\n*Oficina:* ${this.reciboGenerado.oficina}\n*Fecha:* ${this.reciboGenerado.fechaPago}\n*Remitente:* Dirección: ${this.reciboGenerado.remitente?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.remitente?.telefono || 'No especificado'}\n*Destinatario:* Dirección: ${this.reciboGenerado.destinatario?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.destinatario?.telefono || 'No especificado'}\n*Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}\n*Tipo de Pago:* ${this.reciboGenerado.tipoPago || 'No especificado'}\n*Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}\n*Peso:* ${this.reciboGenerado.peso || '0'} g\n*TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n\n¡Gracias por usar los servicios de Correos de Honduras!`;
 
       const mensajeCodificado = encodeURIComponent(mensaje);
 
@@ -582,10 +590,9 @@ export class ReciboComponent {
       }
     }).catch(() => {
       // En caso de error, restaurar los botones
-      if (botonesDiv) {
-        botonesDiv.style.display = displayOriginal || '';
-      }
-    });
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });      elemento.classList.remove('pdf-ticket');    });
   }
 
   nuevoRecibo() {

@@ -246,7 +246,7 @@
   </div>
 
   <!-- Recibo Generado -->
-  <div *ngIf="reciboGenerado" id="recibo-pdf-conten" class="recibo-display">
+  <div *ngIf="reciboGenerado" id="recibo-pdf-content" class="recibo-display">
     <!-- Print Header -->
     <div class="recibo-header print-only">
       <div class="logo-container">
@@ -366,7 +366,7 @@
     </div>
 
     <!-- Action Buttons -->
-    <div class="receipt-actions screen-only">
+    <div class="receipt-actions screen-only no-print">
       <button type="button" class="btn btn-print" (click)="imprimir()">
         🖨️ Imprimir Recibo
       </button>
