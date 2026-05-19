@@ -198,6 +198,16 @@
   transform: rotate(180deg);
 }
 
+.user-profile.clickable {
+  background-color: #e8f4f8;
+  border: 1px solid #b3dfe8;
+}
+
+.user-profile.clickable:hover {
+  background-color: #d0eff8;
+  border-color: #7fb3c4;
+}
+
 /* CONTENT */
 .content {
   flex: 1;

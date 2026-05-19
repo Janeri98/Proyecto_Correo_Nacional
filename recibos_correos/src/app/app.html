@@ -17,6 +17,7 @@
         routerLink="/inicio"
         routerLinkActive="active"
         class="nav-item"
+        (click)="manejarClickNav('/inicio', $event)"
       >
         <i class="icon">🏠</i>
         <span>Inicio</span>
@@ -26,6 +27,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav-item"
+        (click)="manejarClickNav('/recibo', $event)"
       >
         <i class="icon">📋</i>
         <span>Recibos</span>
@@ -34,13 +36,14 @@
         routerLink="/reportes"
         routerLinkActive="active"
         class="nav-item"
+        (click)="manejarClickNav('/reportes', $event)"
       >
         <i class="icon">📊</i>
         <span>Reportes</span>
       </a>
       <a (click)="abrirLogin()" class="nav-item" *ngIf="!usuarioAutenticado">
         <i class="icon">👥</i>
-        <span>Usuarios</span>
+        <span>Iniciar Sesión</span>
       </a>
       <a class="nav-item usuario-info" *ngIf="usuarioAutenticado">
         <i class="icon">👤</i>
@@ -64,7 +67,7 @@
         <h1 class="page-title">Generar Recibo</h1>
       </div>
       <div class="header-right">
-        <div class="user-profile">
+        <div class="user-profile" [class.clickable]="!usuarioAutenticado" (click)="usuarioAutenticado ? null : abrirLogin()">
           <div class="user-avatar" *ngIf="usuarioAutenticado">{{ usuarioActual | slice:0:2 | uppercase }}</div>
           <div class="user-avatar" *ngIf="!usuarioAutenticado">--</div>
           <div class="user-info">

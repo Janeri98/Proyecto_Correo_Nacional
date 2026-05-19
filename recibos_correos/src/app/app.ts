@@ -33,12 +33,27 @@ export class AppComponent {
   
   erroresLogin: { [key: string]: string } = {};
   
-  roles = ['Admin (Master)', 'Usuario'];
+  roles = ['Administrador', 'Supervisor', 'Normal'];
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
   constructor(private router: Router) {}
   
+  manejarClickNav(ruta: string, evento: Event) {
+    if (!this.usuarioAutenticado) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      this.mostrarAlertaAccesoRequerido();
+      return;
+    }
+
+    // Si el usuario ya está autenticado, permitir navegación normal.
+  }
+
+  mostrarAlertaAccesoRequerido() {
+    alert('Para acceder a esta sección necesitas iniciar sesión primero.\n\nHaz clic en "Iniciar Sesión" para comenzar.');
+  }
+
   abrirLogin() {
     this.mostrarModalLogin = true;
     this.formularioLogin = {

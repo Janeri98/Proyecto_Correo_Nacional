@@ -14,7 +14,6 @@ describe('ReciboComponent', () => {
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });

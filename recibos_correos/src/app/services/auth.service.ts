@@ -15,16 +15,31 @@ export class AuthService {
 
   // Definir jerarquía de roles
   private rolesJerarquia = {
-    'Admin (Master)': 2, // Ve todo
-    'Usuario': 1         // Acceso limitado
+    'Administrador': 3, // Acceso total
+    'Supervisor': 2,    // Acceso a reportes y recibos
+    'Normal': 1         // Solo ingreso de recibos
   };
 
   constructor() { }
 
-  // Método para verificar permisos
+  // Método para verificar permisos generales
   tienePermiso(usuario: Usuario): boolean {
     const nivelUsuario = this.rolesJerarquia[usuario.rol as keyof typeof this.rolesJerarquia];
-    return nivelUsuario >= 2; // Solo Admin ve reportes
+    return nivelUsuario >= 1;
+  }
+
+  puedeVerReportes(usuario: Usuario): boolean {
+    const nivelUsuario = this.rolesJerarquia[usuario.rol as keyof typeof this.rolesJerarquia];
+    return nivelUsuario >= 2;
+  }
+
+  puedeCrearRecibos(usuario: Usuario): boolean {
+    const nivelUsuario = this.rolesJerarquia[usuario.rol as keyof typeof this.rolesJerarquia];
+    return nivelUsuario >= 1;
+  }
+
+  esAdministrador(usuario: Usuario): boolean {
+    return usuario.rol === 'Administrador';
   }
 
   // Obtener usuario actual desde localStorage
@@ -32,9 +47,9 @@ export class AuthService {
     const autenticado = localStorage.getItem('usuarioAutenticado');
     if (autenticado === 'true') {
       return {
-        nombre: localStorage.getItem('usuarioActual') || '',
+        nombre: localStorage.getItem('usuarioActual') || '',      
         correo: localStorage.getItem('usuarioEmail') || '',
-        rol: localStorage.getItem('usuarioRol') || '',
+        rol: localStorage.getItem('usuarioRol') || '', 
         departamento: localStorage.getItem('usuarioDepartamento') || '',
         municipio: localStorage.getItem('usuarioMunicipio') || ''
       };

@@ -21,12 +21,14 @@ export class ReciboComponent {
     oficina: '',
     fecha: '',
     remitente: {
+      nombre: '',
       direccion: '',
       email: '',
       telefono: '',
       pais: ''
     },
     destinatario: {
+      nombre: '',
       direccion: '',
       email: '',
       telefono: '',
@@ -191,6 +193,11 @@ export class ReciboComponent {
   // NUEVA FUNCIÓN: Manejar cambio de servicio
   onServicioChange() {
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
+
+    // Cargos adicionales por certificados: nacional = 10 L, internacional = 50 L
+    const esCertificadoNacional = this.recibo.tipoServicio.includes('44113');
+    const esCertificadoInternacional = this.recibo.tipoServicio.includes('44114');
+    const cargoCertificado = esCertificadoNacional ? 10 : esCertificadoInternacional ? 50 : 0;
     if (!esSellos) {
       // Si no es sello, limpiar el precio del sello
       this.recibo.precioSello = null;
@@ -203,6 +210,13 @@ export class ReciboComponent {
   calcularCosto() {
     // NUEVO: Verificar si es Sellos Postales o Filatelicos
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
+
+    // Cargos adicionales por certificados: nacional = 10 L, internacional = 50 L
+    const esCertificadoNacional = this.recibo.tipoServicio.includes('44113');
+    const esCertificadoInternacional = this.recibo.tipoServicio.includes('44114');
+    let cargoCertificado = 0;
+    if (esCertificadoNacional) cargoCertificado += 10;
+    if (esCertificadoInternacional) cargoCertificado += 50;
 
     if (esSellos) {
       // Para sellos: sumar precio del sello * cantidad + costo del peso según tabla geográfica
@@ -256,53 +270,61 @@ export class ReciboComponent {
         }
       }
 
+      // Sumar cargo por certificado si aplica
+      if (cargoCertificado > 0) {
+        costoTotal += cargoCertificado;
+      }
+
       this.recibo.costo = costoTotal > 0 ? costoTotal : null;
     } else {
       // Para otros servicios: usar tabla de precios por grupo geográfico
-      if (!this.recibo.peso || this.recibo.peso <= 0) {
-        this.recibo.costo = null;
-        return;
+      let costoBase = 0;
+      
+      // Si hay peso, buscar el costo según la tabla
+      if (this.recibo.peso && this.recibo.peso > 0) {
+        const peso = this.recibo.peso;
+        const grupo = this.recibo.grupo;
+        const precios = this.tablaPrecios[grupo as keyof typeof this.tablaPrecios];
+
+        // Encontrar el rango que corresponde al peso
+        let rango = '';
+        if (peso >= 1 && peso <= 20) rango = '1-20';
+        else if (peso >= 21 && peso <= 50) rango = '21-50';
+        else if (peso >= 51 && peso <= 100) rango = '51-100';
+        else if (peso >= 101 && peso <= 250) rango = '101-250';
+        else if (peso >= 251 && peso <= 500) rango = '251-500';
+        else if (peso >= 501 && peso <= 1000) rango = '501-1000';
+        else if (peso >= 1001 && peso <= 1500) rango = '1001-1500';
+        else if (peso >= 1501 && peso <= 2000) rango = '1501-2000';
+        else if (peso >= 2001 && peso <= 2500) rango = '2001-2500';
+        else if (peso >= 2501 && peso <= 3000) rango = '2501-3000';
+        else if (peso >= 3001 && peso <= 3500) rango = '3001-3500';
+        else if (peso >= 3501 && peso <= 4000) rango = '3501-4000';
+        else if (peso >= 4001 && peso <= 4500) rango = '4001-4500';
+        else if (peso >= 4501 && peso <= 5000) rango = '4501-5000';
+        else if (peso >= 5001 && peso <= 5500) rango = '5001-5500';
+        else if (peso >= 5501 && peso <= 6000) rango = '5501-6000';
+        else if (peso >= 6001 && peso <= 6500) rango = '6001-6500';
+        else if (peso >= 6501 && peso <= 7000) rango = '6501-7000';
+        else if (peso >= 7001 && peso <= 7500) rango = '7001-7500';
+        else if (peso >= 7501 && peso <= 8000) rango = '7501-8000';
+        else if (peso >= 8001 && peso <= 8500) rango = '8001-8500';
+        else if (peso >= 8501 && peso <= 9000) rango = '8501-9000';
+        else if (peso >= 9001 && peso <= 9500) rango = '9001-9500';
+        else if (peso >= 9501 && peso <= 10000) rango = '9501-10000';
+
+        if (rango) {
+          const costo = precios[rango as keyof typeof precios];
+          costoBase = costo || 0;
+        }
       }
 
-      const peso = this.recibo.peso;
-      const grupo = this.recibo.grupo;
-      const precios = this.tablaPrecios[grupo as keyof typeof this.tablaPrecios];
-
-      // Encontrar el rango que corresponde al peso
-      let rango = '';
-      if (peso >= 1 && peso <= 20) rango = '1-20';
-      else if (peso >= 21 && peso <= 50) rango = '21-50';
-      else if (peso >= 51 && peso <= 100) rango = '51-100';
-      else if (peso >= 101 && peso <= 250) rango = '101-250';
-      else if (peso >= 251 && peso <= 500) rango = '251-500';
-      else if (peso >= 501 && peso <= 1000) rango = '501-1000';
-      else if (peso >= 1001 && peso <= 1500) rango = '1001-1500';
-      else if (peso >= 1501 && peso <= 2000) rango = '1501-2000';
-      else if (peso >= 2001 && peso <= 2500) rango = '2001-2500';
-      else if (peso >= 2501 && peso <= 3000) rango = '2501-3000';
-      else if (peso >= 3001 && peso <= 3500) rango = '3001-3500';
-      else if (peso >= 3501 && peso <= 4000) rango = '3501-4000';
-      else if (peso >= 4001 && peso <= 4500) rango = '4001-4500';
-      else if (peso >= 4501 && peso <= 5000) rango = '4501-5000';
-      else if (peso >= 5001 && peso <= 5500) rango = '5001-5500';
-      else if (peso >= 5501 && peso <= 6000) rango = '5501-6000';
-      else if (peso >= 6001 && peso <= 6500) rango = '6001-6500';
-      else if (peso >= 6501 && peso <= 7000) rango = '6501-7000';
-      else if (peso >= 7001 && peso <= 7500) rango = '7001-7500';
-      else if (peso >= 7501 && peso <= 8000) rango = '7501-8000';
-      else if (peso >= 8001 && peso <= 8500) rango = '8001-8500';
-      else if (peso >= 8501 && peso <= 9000) rango = '8501-9000';
-      else if (peso >= 9001 && peso <= 9500) rango = '9001-9500';
-      else if (peso >= 9501 && peso <= 10000) rango = '9501-10000';
-      else {
+      // Sumar cargo por certificado y asignar costo final
+      const costoFinal = costoBase + cargoCertificado;
+      if (costoFinal > 0) {
+        this.recibo.costo = costoFinal;
+      } else {
         this.recibo.costo = null;
-        return;
-      }
-
-      // Obtener el costo del rango
-      const costo = precios[rango as keyof typeof precios];
-      if (costo) {
-        this.recibo.costo = costo;
       }
     }
   }
@@ -361,6 +383,9 @@ export class ReciboComponent {
     if (!this.recibo.remitente.direccion || this.recibo.remitente.direccion.trim() === '') {
       this.errores['remitenteDir'] = 'La dirección del remitente es requerida';
     }
+    if (!this.recibo.remitente.nombre || this.recibo.remitente.nombre.trim() === '') {
+      this.errores['remitenteNombre'] = 'El nombre del remitente es requerido';
+    }
     if (!this.recibo.remitente.email || this.recibo.remitente.email.trim() === '') {
       this.errores['remitenteEmail'] = 'El email del remitente es requerido';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.recibo.remitente.email)) {
@@ -377,6 +402,9 @@ export class ReciboComponent {
 
     if (!this.recibo.destinatario.direccion || this.recibo.destinatario.direccion.trim() === '') {
       this.errores['destinatarioDir'] = 'La dirección del destinatario es requerida';
+    }
+    if (!this.recibo.destinatario.nombre || this.recibo.destinatario.nombre.trim() === '') {
+      this.errores['destinatarioNombre'] = 'El nombre del destinatario es requerido';
     }
     if (!this.recibo.destinatario.email || this.recibo.destinatario.email.trim() === '') {
       this.errores['destinatarioEmail'] = 'El email del destinatario es requerido';
@@ -414,8 +442,39 @@ export class ReciboComponent {
     return Object.keys(this.errores).length === 0;
   }
 
+  private esHorarioPermitido(): boolean {
+    const ahora = new Date();
+    const minutos = ahora.getHours() * 60 + ahora.getMinutes();
+    const inicio = 7 * 60 + 55; // 7:55 AM
+    const fin = 17 * 60; // 5:00 PM
+    return minutos >= inicio && minutos < fin;
+  }
+
+  private obtenerFechaHoy(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  private esDiaCerrado(): boolean {
+    const fechaHoy = this.obtenerFechaHoy();
+    const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
+    return diasCerrados.includes(fechaHoy);
+  }
+
+  private puedeRegistrarRecibo(): boolean {
+    return this.esHorarioPermitido() && !this.esDiaCerrado();
+  }
+
   generarRecibo() {
     if (!this.validarCampos()) {
+      return;
+    }
+
+    if (!this.puedeRegistrarRecibo()) {
+      if (this.esDiaCerrado()) {
+        alert('El día ya fue cerrado. No se pueden registrar más datos hasta el siguiente día a las 7:55 AM.');
+      } else {
+        alert('Horario de registro cerrado. No se puede ingresar más información después de las 5:00 PM ni antes de las 7:55 AM.');
+      }
       return;
     }
 
@@ -542,7 +601,7 @@ export class ReciboComponent {
       const imagenURL = canvas.toDataURL('image/png');
 
       // Crear un mensaje de texto para acompañar
-      const mensaje = `🧾 *RECIBO DE PAGO - CORREOS DE HONDURAS*\n\n*Recibo Nº:* ${this.reciboGenerado.numero}\n*Oficina:* ${this.reciboGenerado.oficina}\n*Fecha:* ${this.reciboGenerado.fechaPago}\n*Remitente:* Dirección: ${this.reciboGenerado.remitente?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.remitente?.telefono || 'No especificado'}\n*Destinatario:* Dirección: ${this.reciboGenerado.destinatario?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.destinatario?.telefono || 'No especificado'}\n*Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}\n*Tipo de Pago:* ${this.reciboGenerado.tipoPago || 'No especificado'}\n*Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}\n*Peso:* ${this.reciboGenerado.peso || '0'} g\n*TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n\n¡Gracias por usar los servicios de Correos de Honduras!`;
+      const mensaje = `🧾 *RECIBO DE PAGO - CORREOS DE HONDURAS*\n\n*Recibo Nº:* ${this.reciboGenerado.numero}\n*Oficina:* ${this.reciboGenerado.oficina}\n*Fecha:* ${this.reciboGenerado.fechaPago}\n*Remitente:* Nombre: ${this.reciboGenerado.remitente?.nombre || 'No especificado'}; Dirección: ${this.reciboGenerado.remitente?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.remitente?.telefono || 'No especificado'}\n*Destinatario:* Nombre: ${this.reciboGenerado.destinatario?.nombre || 'No especificado'}; Dirección: ${this.reciboGenerado.destinatario?.direccion || 'No especificada'}, Tel: ${this.reciboGenerado.destinatario?.telefono || 'No especificado'}\n*Tipo de Servicio:* ${this.reciboGenerado.tipoServicio}\n*Tipo de Pago:* ${this.reciboGenerado.tipoPago || 'No especificado'}\n*Concepto:* ${this.reciboGenerado.concepto || 'No especificado'}\n*Peso:* ${this.reciboGenerado.peso || '0'} g\n*TOTAL A PAGAR:* L. ${(this.reciboGenerado.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n\n¡Gracias por usar los servicios de Correos de Honduras!`;
 
       const mensajeCodificado = encodeURIComponent(mensaje);
 
@@ -601,12 +660,14 @@ export class ReciboComponent {
       oficina: '',
       fecha: this.fechaHoy,
       remitente: {
+        nombre: '',
         direccion: '',
         email: '',
         telefono: '',
         pais: ''
       },
       destinatario: {
+        nombre: '',
         direccion: '',
         email: '',
         telefono: '',
@@ -636,12 +697,14 @@ export class ReciboComponent {
       oficina: '',
       fecha: this.fechaHoy,
       remitente: {
+        nombre: '',
         direccion: '',
         email: '',
         telefono: '',
         pais: ''
       },
       destinatario: {
+        nombre: '',
         direccion: '',
         email: '',
         telefono: '',
