@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, TemplateRef } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +38,7 @@ export class AppComponent {
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
   
   manejarClickNav(ruta: string, evento: Event) {
     if (!this.usuarioAutenticado) {
@@ -189,6 +190,13 @@ export class AppComponent {
 
   cancelarCerrarSesion() {
     this.mostrarModalConfirmacion = false;
+  }
+
+  // Método para verificar si el usuario actual puede ver reportes
+  puedeVerReportes(): boolean {
+    const usuario = this.authService.getUsuarioActual();
+    if (!usuario) return false;
+    return this.authService.puedeVerReportes(usuario);
   }
 
   ngOnInit() {

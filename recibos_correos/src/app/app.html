@@ -37,6 +37,7 @@
         routerLinkActive="active"
         class="nav-item"
         (click)="manejarClickNav('/reportes', $event)"
+        *ngIf="puedeVerReportes()"
       >
         <i class="icon">📊</i>
         <span>Reportes</span>

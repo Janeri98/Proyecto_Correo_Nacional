@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { RecibosStorageService, Recibo } from './recibos-storage.service';
 import { AuthService } from './auth.service';
 
@@ -24,7 +27,13 @@ export interface ReporteData {
   providedIn: 'root'
 })
 export class ReportesService {
-  constructor(private recibosStorage: RecibosStorageService, private authService: AuthService) {}
+  private readonly apiBaseUrl = 'http://localhost:3000/api'; // Cambia esta URL por la de tu API real.
+
+  constructor(
+    private recibosStorage: RecibosStorageService,
+    private authService: AuthService,
+    private http: HttpClient
+  ) {}
 
   obtenerVentas(): Venta[] {
     const usuario = this.authService.getUsuarioActual();
@@ -178,6 +187,50 @@ export class ReportesService {
       oficina: recibo.oficina,
       tipoPago: recibo.tipoPago || ''
     }));
+  }
+
+  obtenerCierresDia(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}/cierres`).pipe(
+      catchError(() => of(this.getLocalCierresDia()))
+    );
+  }
+
+  obtenerDiasCerrados(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiBaseUrl}/dias-cerrados`).pipe(
+      catchError(() => of(this.getLocalDiasCerrados()))
+    );
+  }
+
+  guardarCierreDia(cierre: any): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/cierres`, cierre).pipe(
+      catchError(() => {
+        const cierres = this.getLocalCierresDia();
+        cierres.push(cierre);
+        localStorage.setItem('cierresDia', JSON.stringify(cierres));
+        return of(cierre);
+      })
+    );
+  }
+
+  marcarDiaCerrado(fecha: string): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/dias-cerrados`, { fecha }).pipe(
+      catchError(() => {
+        const diasCerrados = this.getLocalDiasCerrados();
+        if (!diasCerrados.includes(fecha)) {
+          diasCerrados.push(fecha);
+          localStorage.setItem('diasCerrados', JSON.stringify(diasCerrados));
+        }
+        return of({ fecha });
+      })
+    );
+  }
+
+  private getLocalCierresDia(): any[] {
+    return JSON.parse(localStorage.getItem('cierresDia') || '[]');
+  }
+
+  private getLocalDiasCerrados(): string[] {
+    return JSON.parse(localStorage.getItem('diasCerrados') || '[]');
   }
 
   obtenerMunicipios(): string[] {

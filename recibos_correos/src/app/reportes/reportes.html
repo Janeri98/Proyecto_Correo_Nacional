@@ -4,6 +4,18 @@
       <h1 class="text-primary mb-4">
         <i class="bi bi-graph-up"></i> Reportes de Ventas
       </h1>
+      <div class="alert alert-light border rounded p-3">
+        <strong>Usuario:</strong> {{ usuarioActualNombre || 'Invitado' }}
+        <span class="badge bg-secondary ms-2">{{ usuarioActualRol || 'Sin rol' }}</span>
+        <div class="mt-2 mb-0 text-muted">
+          <span *ngIf="esAdministrador">Modo Administrador: acceso completo a todos los reportes y cierres.</span>
+          <span *ngIf="esSupervisor">Modo Supervisor: datos limitados a tu departamento y municipio.</span>
+        </div>
+      </div>
+      <div *ngIf="mensajeCierreExito" class="alert alert-success d-flex align-items-center" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ mensajeCierreExito }}
+      </div>
     </div>
   </div>
 
@@ -34,10 +46,12 @@
             class="form-select"
             [(ngModel)]="departamentoSeleccionado"
             (change)="cargarReporte()"
+            [disabled]="esSupervisor"
           >
             <option value="">Todos los Departamentos</option>
             <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
           </select>
+          <small *ngIf="esSupervisor" class="text-muted">Supervisor solo ve su departamento.</small>
         </div>
 
         <div class="col-md-3">
@@ -46,10 +60,12 @@
             class="form-select"
             [(ngModel)]="municipioSeleccionado"
             (change)="cargarReporte()"
+            [disabled]="esSupervisor"
           >
             <option value="">Todos los Municipios</option>
             <option *ngFor="let mun of municipios" [value]="mun">{{ mun }}</option>
           </select>
+          <small *ngIf="esSupervisor" class="text-muted">Supervisor solo ve su municipio.</small>
         </div>
 
         <!-- Filtro Diario -->
@@ -205,13 +221,56 @@
           <h2 class="display-4 fw-bold">{{ simboloMoneda }}{{ totalMonto.toFixed(2) }}</h2>
           <p class="card-text">Ingresos totales</p>
           <button 
-            class="btn btn-warning fw-bold mt-3" 
+            type="button"
+            class="btn mt-3 fw-bold" 
             (click)="abrirModalCierreDia()"
             [disabled]="diaCerrado"
-            [ngClass]="{'btn-light': diaCerrado}">
+            [ngClass]="{
+              'btn-warning': !diaCerrado,
+              'btn-light': diaCerrado
+            }">
             <i class="bi bi-check-circle"></i> 
             {{ diaCerrado ? '✓ Día Cerrado' : 'Cerrar Día' }}
           </button>
+          <p class="small mt-2 mb-0" *ngIf="mensajeCierreExito">
+            <span class="badge bg-success">{{ mensajeCierreExito }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Cierres de Día -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">Histórico de Cierres de Día</h5>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="cierresDia.length > 0" class="table-responsive">
+        <table class="table table-sm table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Fecha</th>
+              <th>Hora de cierre</th>
+              <th class="text-right">Monto</th>
+              <th class="text-center">Transacciones</th>
+              <th>Usuario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cierre of cierresDia">
+              <td>{{ cierre.fecha }}</td>
+              <td>{{ cierre.horaCierre || (cierre.fechaCierre ? (cierre.fechaCierre | date:'HH:mm:ss') : '-') }}</td>
+              <td class="text-right">{{ simboloMoneda }}{{ cierre.totalMonto ? (cierre.totalMonto.toFixed(2)) : '0.00' }}</td>
+              <td class="text-center">{{ cierre.totalTransacciones }}</td>
+              <td>{{ cierre.usuario }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="cierresDia.length === 0" class="p-3">
+        <div class="alert alert-secondary mb-0">
+          No hay registros de cierre de día aún.
         </div>
       </div>
     </div>
@@ -359,7 +418,7 @@
     <div class="modal-dialog" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2>Confirmar Cierre de Día</h2>
-        <button class="btn-close" (click)="cancelarCierreDia()">✕</button>
+        <button type="button" class="btn-close" (click)="cancelarCierreDia()">✕</button>
       </div>
       <div class="modal-body">
         <div class="alert alert-warning" role="alert">
@@ -371,10 +430,10 @@
         <p class="text-muted small">¿Deseas proceder con el cierre del día?</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="cancelarCierreDia()">
+        <button type="button" class="btn btn-secondary" (click)="cancelarCierreDia()">
           Cancelar
         </button>
-        <button class="btn btn-success" (click)="confirmarCierreDia()">
+        <button type="button" class="btn btn-success" (click)="confirmarCierreDia()">
           ✓ Cerrar Día
         </button>
       </div>

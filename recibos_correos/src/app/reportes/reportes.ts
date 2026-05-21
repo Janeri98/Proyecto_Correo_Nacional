@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportesService } from '../services/reportes.service';
 import { RecibosStorageService } from '../services/recibos-storage.service';
+import { AuthService } from '../services/auth.service';
 import { HttpClientModule } from '@angular/common/http';
 import jsPDF from 'jspdf';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-reportes',
@@ -42,12 +43,19 @@ export class ReportesComponent implements OnInit, OnDestroy {
   simboloMoneda: string = 'L. ';
   mostrarModalCierreDia: boolean = false;
   diaCerrado: boolean = false;
+  cierresDia: any[] = [];
+  mensajeCierreExito: string = '';
+  usuarioActualNombre: string = '';
+  usuarioActualRol: string = '';
+  esAdministrador: boolean = false;
+  esSupervisor: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private reportesService: ReportesService,
-    private recibosStorage: RecibosStorageService
+    private recibosStorage: RecibosStorageService,
+    private authService: AuthService
   ) {
     this.fechaSeleccionada = this.obtenerFechaHoy();
     this.monthSeleccionado = this.obtenerMesActual();
@@ -61,18 +69,54 @@ export class ReportesComponent implements OnInit, OnDestroy {
     this.departamentos = this.reportesService.obtenerDepartamentos();
   }
 
+  private cargarUsuarioActual(): void {
+    const usuario = this.authService.getUsuarioActual();
+    // usar valores de authService cuando existan, si no, revisar localStorage
+    const nombreLS = localStorage.getItem('usuarioActual');
+    const rolLS = localStorage.getItem('usuarioRol');
+    const deptLS = localStorage.getItem('usuarioDepartamento');
+    const munLS = localStorage.getItem('usuarioMunicipio');
+
+    this.usuarioActualNombre = usuario?.nombre || nombreLS || 'Desconocido';
+    this.usuarioActualRol = usuario?.rol || rolLS || '';
+    this.esAdministrador = (usuario?.rol === 'Administrador') || (rolLS === 'Administrador');
+    this.esSupervisor = (usuario?.rol === 'Supervisor') || (rolLS === 'Supervisor');
+
+    if (this.esSupervisor) {
+      this.departamentoSeleccionado = usuario?.departamento || deptLS || this.departamentoSeleccionado;
+      this.municipioSeleccionado = usuario?.municipio || munLS || this.municipioSeleccionado;
+    }
+  }
+
   private verificarDiaCerrado(): void {
-    const fechaHoy = this.obtenerFechaHoy();
-    const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
-    this.diaCerrado = diasCerrados.includes(fechaHoy);
-    console.log('=== verificarDiaCerrado ===');
-    console.log('fechaHoy:', fechaHoy);
-    console.log('diasCerrados:', diasCerrados);
-    console.log('diaCerrado:', this.diaCerrado);
+    const fechaVerificar = this.tipoReporte === 'diario'
+      ? (this.fechaSeleccionada || this.obtenerFechaHoy())
+      : this.obtenerFechaHoy();
+
+    this.reportesService.obtenerDiasCerrados()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(
+        (diasCerrados: string[]) => {
+          const estaCerrado = diasCerrados.includes(fechaVerificar);
+          this.diaCerrado = estaCerrado;
+          console.log('=== verificarDiaCerrado ===');
+          console.log('fechaVerificar:', fechaVerificar);
+          console.log('diasCerrados:', diasCerrados);
+          console.log('diaCerrado:', this.diaCerrado);
+        },
+        (error) => {
+          console.error('Error al verificar día cerrado:', error);
+          // Fallback a localStorage
+          const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
+          this.diaCerrado = diasCerrados.includes(fechaVerificar);
+        }
+      );
   }
 
   ngOnInit(): void {
+    this.cargarUsuarioActual();
     this.verificarDiaCerrado();
+    this.cargarCierresDia();
     this.cargarReporte();
     this.recibosStorage.recibos$
       .pipe(takeUntil(this.destroy$))
@@ -94,6 +138,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
     if (this.tipoReporte === 'diario') {
       const fecha = this.fechaSeleccionada || this.obtenerFechaHoy();
       this.fechaSeleccionada = fecha;
+      this.mensajeCierreExito = '';
       console.log('Cargando reporte diario para fecha:', fecha);
       const ventas = this.reportesService.obtenerReporteFiltrado(
         fecha,
@@ -167,6 +212,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
       );
     }
     this.verificarDiaCerrado();
+    this.cargarCierresDia();
     console.log('diaCerrado después de verificar:', this.diaCerrado);
     console.log('=== FIN cargarReporte ===');
   }
@@ -174,6 +220,17 @@ export class ReportesComponent implements OnInit, OnDestroy {
   private calcularTotales(ventas: any[]): void {
     this.totalVentas = ventas.length;
     this.totalMonto = ventas.reduce((sum, v) => sum + (Number(v.monto) || 0), 0);
+  }
+
+  private cargarCierresDia(): void {
+    const usuarioFiltro = this.usuarioActualNombre || localStorage.getItem('usuarioActual') || 'Desconocido';
+    this.reportesService.obtenerCierresDia()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((todosCierres: any[]) => {
+        this.cierresDia = this.esAdministrador
+          ? todosCierres
+          : todosCierres.filter((cierre: any) => cierre.usuario === usuarioFiltro);
+      });
   }
 
   private obtenerFechaHoy(): string {
@@ -196,49 +253,90 @@ export class ReportesComponent implements OnInit, OnDestroy {
     console.log('totalVentas:', this.totalVentas);
     console.log('totalMonto:', this.totalMonto);
 
-    if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0) {
-      console.log('Abriendo modal de cierre de día');
-      this.mostrarModalCierreDia = true;
-    } else if (this.ventasTabla.length === 0) {
-      console.log('No hay transacciones');
-      alert('No hay transacciones para cerrar el día.');
+    // Asegurar que la fecha seleccionada esté definida cuando es reporte diario
+    if (this.tipoReporte === 'diario') {
+      this.fechaSeleccionada = this.fechaSeleccionada || this.obtenerFechaHoy();
+      // Verificar si esa fecha ya está cerrada
+      this.verificarDiaCerrado();
+      
+      // Pequeña pausa para permitir que verificarDiaCerrado se complete
+      setTimeout(() => {
+        if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0 && !this.diaCerrado) {
+          console.log('Abriendo modal de cierre de día');
+          this.mostrarModalCierreDia = true;
+        } else if (this.ventasTabla.length === 0) {
+          console.log('No hay transacciones');
+          alert('No hay transacciones para cerrar el día.');
+        } else if (this.diaCerrado) {
+          console.log('El día ya está cerrado para la fecha seleccionada');
+          alert('El día seleccionado ya fue cerrado.');
+        } else {
+          console.log('Condición inesperada');
+          alert('No se puede cerrar el día en este momento.');
+        }
+        console.log('=== FIN abrirModalCierreDia ===');
+      }, 100);
     } else {
       console.log('No es reporte diario');
       alert('Solo puedes cerrar el día desde el reporte diario.');
+      console.log('=== FIN abrirModalCierreDia ===');
     }
-    console.log('=== FIN abrirModalCierreDia ===');
   }
 
   confirmarCierreDia(): void {
-    const fechaHoy = this.obtenerFechaHoy();
-    const diasCerrados = JSON.parse(localStorage.getItem('diasCerrados') || '[]');
-    
-    if (!diasCerrados.includes(fechaHoy)) {
-      diasCerrados.push(fechaHoy);
-      localStorage.setItem('diasCerrados', JSON.stringify(diasCerrados));
-    }
+    const fechaCierreDia = this.tipoReporte === 'diario'
+      ? (this.fechaSeleccionada || this.obtenerFechaHoy())
+      : this.obtenerFechaHoy();
+    const fechaHoraCierre = new Date();
+    const horaCierre = fechaHoraCierre.toTimeString().split(' ')[0];
 
-    // Guardar resumen del cierre
     const resumenCierre = {
-      fecha: fechaHoy,
+      fecha: fechaCierreDia,
+      horaCierre,
       totalTransacciones: this.totalVentas,
       totalMonto: this.totalMonto,
-      fechaCierre: new Date().toISOString(),
-      usuario: localStorage.getItem('usuarioActual') || 'Desconocido'
+      fechaCierre: fechaHoraCierre.toISOString(),
+      usuario: this.usuarioActualNombre || localStorage.getItem('usuarioActual') || 'Desconocido',
+      departamento: localStorage.getItem('usuarioDepartamento') || 'N/A',
+      municipio: localStorage.getItem('usuarioMunicipio') || 'N/A'
     };
 
-    const cierres = JSON.parse(localStorage.getItem('cierresDia') || '[]');
-    cierres.push(resumenCierre);
-    localStorage.setItem('cierresDia', JSON.stringify(cierres));
+    console.log('Guardando cierre de día:', resumenCierre);
 
-    this.diaCerrado = true;
-    this.mostrarModalCierreDia = false;
-    alert(`✓ Día cerrado correctamente.\n\nFecha: ${fechaHoy}\nTotal: ${this.simboloMoneda}${this.totalMonto.toFixed(2)}\nTransacciones: ${this.totalVentas}`);
+    this.reportesService.marcarDiaCerrado(fechaCierreDia)
+      .pipe(
+        switchMap(() => this.reportesService.guardarCierreDia(resumenCierre)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(
+        () => {
+          console.log('Cierre de día guardado exitosamente');
+          // Actualizar datos después del cierre
+          this.diaCerrado = true;
+          this.mostrarModalCierreDia = false;
+          this.cargarCierresDia();
+          this.verificarDiaCerrado();
+          
+          // Mostrar mensaje de éxito
+          this.mensajeCierreExito = `✓ Día ${fechaCierreDia} cerrado correctamente. Total ${this.simboloMoneda}${this.totalMonto.toFixed(2)} en ${this.totalVentas} transacciones.`;
+          alert(`✓ Día cerrado correctamente.\n\nFecha: ${fechaCierreDia}\nHora: ${horaCierre}\nTotal: ${this.simboloMoneda}${this.totalMonto.toFixed(2)}\nTransacciones: ${this.totalVentas}`);
+          
+          // Limpiar mensaje de éxito después de 5 segundos
+          setTimeout(() => {
+            this.mensajeCierreExito = '';
+          }, 5000);
+        },
+        (error) => {
+          console.error('Error al cerrar el día:', error);
+          alert('Error al cerrar el día. Por favor, intenta de nuevo.');
+        }
+      );
   }
 
   cancelarCierreDia(): void {
     this.mostrarModalCierreDia = false;
   }
+
 
   exportarPDF(): void {
     const doc = new jsPDF();
