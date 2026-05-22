@@ -14,30 +14,8 @@
       <div class="form-row">
         <div class="form-group">
           <label>Oficina, Agencia o Administración Postal <span class="required">*</span></label>
-          <select class="form-control" [ngClass]="{'error': errores['oficina']}" [(ngModel)]="recibo.oficina"
-            name="oficina">
-            <option value="">Seleccione una agencia postal...</option>
-            <option value="Tegucigalpa Central">Fracisco Morazán Tegucigalpa Toncontin </option>
-            <option value="San Pedro Sula Central">Atlántida </option>
-            <option value="La Ceiba">Choluteca</option>
-            <option value="Choluteca">Colón</option>
-            <option value="Comayagua">Comayagua</option>
-            <option value="Danlí">Copán</option>
-            <option value="Juticalpa">Cortes </option>
-            <option value="Santa Rosa de Copán">El paraiso </option>
-            <option value="Gracias">Gracias A Dios </option>
-            <option value="Siguatepeque">Intibucá</option>
-            <option value="El Progreso">Islas de la Bahia </option>
-            <option value="Choloma">La Paz </option>
-            <option value="Tela">Lempira</option>
-            <option value="La Lima">Ocotepeque </option>
-            <option value="Santa Bárbara">Santa Bárbara</option>
-            <option value="Ocotepeque">Olancho</option>
-            <option value="Olanchito">Valle </option>
-
-
-
-          </select>
+          <input type="text" class="form-control" [ngClass]="{'error': errores['oficina']}" [(ngModel)]="recibo.oficina"
+            placeholder="Ingrese la oficina, agencia o administración postal" name="oficina" />
           <span class="error-message" *ngIf="errores['oficina']">{{ errores['oficina'] }}</span>
         </div>
 

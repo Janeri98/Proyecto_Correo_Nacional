@@ -6,6 +6,7 @@ export interface Usuario {
   rol: string;
   departamento: string;
   municipio: string;
+  contrasena?: string;
 }
 
 @Injectable({
@@ -17,7 +18,7 @@ export class AuthService {
   private rolesJerarquia = {
     'Administrador': 3, // Acceso total
     'Supervisor': 2,    // Acceso a reportes y recibos
-    'Normal': 1         // Solo ingreso de recibos
+    'Ventanilla': 1     // Solo ingreso de recibos
   };
 
   constructor() { }
@@ -40,6 +41,20 @@ export class AuthService {
 
   esAdministrador(usuario: Usuario): boolean {
     return usuario.rol === 'Administrador';
+  }
+
+  requiereContrasena(rol: string): boolean {
+    return rol === 'Administrador' || rol === 'Supervisor';
+  }
+
+  validarContrasena(rol: string, contrasena: string): boolean {
+    // Contraseñas predefinidas para demostración
+    // En producción, esto debería conectarse a una base de datos
+    const contrasenasValidas: { [key: string]: string } = {
+      'Administrador': 'admin123',
+      'Supervisor': 'supervisor123'
+    };
+    return contrasenasValidas[rol] === contrasena;
   }
 
   // Obtener usuario actual desde localStorage

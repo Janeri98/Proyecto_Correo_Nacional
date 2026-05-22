@@ -16,6 +16,15 @@ export const reportesGuard = (): boolean | UrlTree => {
     });
   }
 
+  // Bloquear acceso a Ventanilla
+  if (usuario.rol === 'Ventanilla') {
+    return router.createUrlTree(['/inicio'], {
+      queryParams: {
+        mensaje: 'Los usuarios de Ventanilla no tienen acceso a la sección de reportes. Solo Administrador y Supervisor pueden ver reportes.'
+      }
+    });
+  }
+
   // Verificar si el usuario tiene permisos para ver reportes
   if (authService.puedeVerReportes(usuario)) {
     return true;

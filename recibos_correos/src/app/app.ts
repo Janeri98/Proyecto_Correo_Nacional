@@ -34,12 +34,12 @@ export class AppComponent {
   
   erroresLogin: { [key: string]: string } = {};
   
-  roles = ['Administrador', 'Supervisor', 'Normal'];
+  roles = ['Administrador', 'Supervisor', 'Ventanilla'];
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
   constructor(private router: Router, private authService: AuthService) {}
-  
+
   manejarClickNav(ruta: string, evento: Event) {
     if (!this.usuarioAutenticado) {
       evento.preventDefault();
@@ -156,6 +156,18 @@ export class AppComponent {
   }
 
   confirmarCerrarSesion() {
+    // Limpiar localStorage primero
+    localStorage.removeItem('usuarioAutenticado');
+    localStorage.removeItem('usuarioActual');
+    localStorage.removeItem('usuarioRol');
+    localStorage.removeItem('usuarioDepartamento');
+    localStorage.removeItem('usuarioMunicipio');
+    localStorage.removeItem('usuarioFechaCreacion');
+    localStorage.removeItem('usuarioEmail');
+    localStorage.removeItem('usuarioDireccion');
+    localStorage.removeItem('usuarioTelefono');
+    
+    // Actualizar estado del componente
     this.usuarioAutenticado = false;
     this.usuarioActual = '';
     this.usuarioRol = '';
@@ -173,19 +185,16 @@ export class AppComponent {
       municipio: ''
     };
     
-    // Limpiar localStorage
-    localStorage.removeItem('usuarioAutenticado');
-    localStorage.removeItem('usuarioActual');
-    localStorage.removeItem('usuarioRol');
-    localStorage.removeItem('usuarioDepartamento');
-    localStorage.removeItem('usuarioMunicipio');
-    localStorage.removeItem('usuarioFechaCreacion');
-    localStorage.removeItem('usuarioEmail');
-    localStorage.removeItem('usuarioDireccion');
-    localStorage.removeItem('usuarioTelefono');
+    // Mostrar alerta de confirmación
+    alert('✓ Sesión cerrada correctamente.\n\nBienvenido nuevamente cuando desees ingresar.');
     
     // Redirigir a inicio
     this.router.navigate(['/inicio']);
+    
+    // Forzar detección de cambios
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
   }
 
   cancelarCerrarSesion() {
