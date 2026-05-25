@@ -13,7 +13,7 @@ export const authGuard = (): boolean | UrlTree => {
 
   return router.createUrlTree(['/inicio'], {
     queryParams: {
-      mensaje: 'Debes iniciar sesión primero para acceder a esta sección. Por favor, selecciona tu rol en la ventana de acceso.'
+      mensaje: 'Debes iniciar sesión primero para acceder a esta sección.'
     }
   });
 };

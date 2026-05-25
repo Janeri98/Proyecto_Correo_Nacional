@@ -184,7 +184,7 @@ export class ReportesService {
       servicio: recibo.tipoServicio,
       cantidad: 1,
       monto: Number(recibo.total) || 0,
-      oficina: recibo.oficina,
+      oficina: recibo.oficina, 
       tipoPago: recibo.tipoPago || ''
     }));
   }

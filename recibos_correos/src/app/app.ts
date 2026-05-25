@@ -296,12 +296,7 @@ export class AppComponent implements OnInit {
       this.usuarioDepartamento = localStorage.getItem('usuarioDepartamento') || '';
       this.usuarioMunicipio = localStorage.getItem('usuarioMunicipio') || '';
       this.usuarioFechaCreacion = localStorage.getItem('usuarioFechaCreacion') || '';
-      this.usuarioCorreo = localStorage.getItem('usuarioCorreo') || '';
       this.usuarioAutenticado = true;
-      
-      // No mostrar modal de login
-      this.mostrarModalLogin = false;
-      this.modoRegistro = false;
     }
   }
 }
