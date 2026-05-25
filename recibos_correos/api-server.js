@@ -1,10 +1,23 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const port = process.env.PORT || 3000;
 const dataFile = path.join(__dirname, 'api-data.json');
+
+// Configuración de MySQL
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'recibos_correos',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -16,6 +29,37 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Inicializar base de datos
+async function inicializarBD() {
+  try {
+    const connection = await pool.getConnection();
+    
+    // Crear tabla usuarios si no existe
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        correo VARCHAR(100) UNIQUE NOT NULL,
+        direccion VARCHAR(255),
+        telefono VARCHAR(20),
+        rol VARCHAR(50) NOT NULL,
+        departamento VARCHAR(100),
+        municipio VARCHAR(100),
+        contrasena VARCHAR(255) NOT NULL,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    connection.release();
+    console.log('✓ Base de datos inicializada correctamente');
+  } catch (error) {
+    console.error('Error inicializando base de datos:', error);
+  }
+}
+
+// Inicializar BD al arrancar
+inicializarBD();
 
 function loadData() {
   if (!fs.existsSync(dataFile)) {
@@ -89,6 +133,127 @@ app.post('/api/dias-cerrados', (req, res) => {
   res.status(201).json({ fecha });
 });
 
+// Registro - crear nueva cuenta
+app.post('/api/auth/registro', async (req, res) => {
+  const { nombre, correo, direccion, telefono, rol, departamento, municipio, contrasena } = req.body;
+
+  // Validar datos
+  if (!nombre || !correo || !contrasena || !rol || !departamento || !municipio) {
+    return res.status(400).json({ error: 'Faltan datos requeridos' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+
+    // Verificar si el usuario ya existe
+    const [existentes] = await connection.execute(
+      'SELECT correo FROM usuarios WHERE correo = ?',
+      [correo]
+    );
+
+    if (existentes.length > 0) {
+      connection.release();
+      return res.status(400).json({ error: 'El correo ya está registrado' });
+    }
+
+    // Encriptar contraseña
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
+
+    // Insertar nuevo usuario
+    const [result] = await connection.execute(
+      'INSERT INTO usuarios (nombre, correo, direccion, telefono, rol, departamento, municipio, contrasena) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, correo, direccion || '', telefono || '', rol, departamento, municipio, hashedPassword]
+    );
+
+    connection.release();
+
+    res.status(201).json({ 
+      message: 'Usuario registrado exitosamente',
+      usuario: {
+        id: result.insertId,
+        nombre,
+        correo,
+        rol
+      }
+    });
+  } catch (error) {
+    console.error('Error en registro:', error);
+    res.status(500).json({ error: 'Error en el registro: ' + error.message });
+  }
+});
+
+// Login - verificar correo y contraseña
+app.post('/api/auth/login', async (req, res) => {
+  const { correo, contrasena } = req.body;
+
+  if (!correo || !contrasena) {
+    return res.status(400).json({ error: 'Correo y contraseña requeridos' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+
+    // Buscar usuario
+    const [usuarios] = await connection.execute(
+      'SELECT id, nombre, correo, rol, departamento, municipio, contrasena, createdAt FROM usuarios WHERE correo = ?',
+      [correo]
+    );
+
+    if (usuarios.length === 0) {
+      connection.release();
+      return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+
+    const usuario = usuarios[0];
+
+    // Verificar contraseña
+    const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena);
+
+    if (!passwordMatch) {
+      connection.release();
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    connection.release();
+
+    // Retornar datos del usuario (sin contraseña)
+    res.json({
+      message: 'Login exitoso',
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rol: usuario.rol,
+        departamento: usuario.departamento,
+        municipio: usuario.municipio,
+        createdAt: usuario.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({ error: 'Error en el login: ' + error.message });
+  }
+});
+
+// Obtener todos los usuarios (sin contraseñas)
+app.get('/api/auth/usuarios', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    const [usuarios] = await connection.execute(
+      'SELECT id, nombre, correo, rol, departamento, municipio, createdAt FROM usuarios'
+    );
+
+    connection.release();
+
+    res.json(usuarios);
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    res.status(500).json({ error: 'Error: ' + error.message });
+  }
+});
+
 app.listen(port, () => {
-  console.log(`API server running at http://localhost:${port}/api`);
+  console.log(`✓ API server running at http://localhost:${port}/api`);
+  console.log(`✓ Database: recibos_correos`);
 });

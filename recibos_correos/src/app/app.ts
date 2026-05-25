@@ -1,35 +1,46 @@
-import { Component, ViewChild, ElementRef, TemplateRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, TemplateRef, OnInit } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
+  imports: [RouterModule, CommonModule, FormsModule, HttpClientModule],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   usuarioAutenticado: boolean = false;
   usuarioActual: string = '';
   usuarioRol: string = '';
   usuarioDepartamento: string = '';
   usuarioMunicipio: string = '';
   usuarioFechaCreacion: string = '';
+  usuarioCorreo: string = '';
   mostrarModalLogin: boolean = false;
   mostrarModalConfirmacion: boolean = false;
+  modoRegistro: boolean = false;
   
-  // Campos del formulario de login / creación de usuario
-  formularioLogin = {
+  // Campos del formulario de registro
+  formularioRegistro = {
     nombre: '',
     correo: '',
     direccion: '',
     telefono: '',
     rol: '',
     departamento: '',
-    municipio: ''
+    municipio: '',
+    contrasena: '',
+    confirmarContrasena: ''
+  };
+
+  // Campos del formulario de login simplificado
+  formularioLogin = {
+    correo: '',
+    contrasena: ''
   };
   
   erroresLogin: { [key: string]: string } = {};
@@ -38,7 +49,9 @@ export class AppComponent {
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
-  constructor(private router: Router, private authService: AuthService) {}
+  apiUrl = 'http://localhost:3000/api/auth';
+
+  constructor(private router: Router, private authService: AuthService, private http: HttpClient) {}
 
   manejarClickNav(ruta: string, evento: Event) {
     if (!this.usuarioAutenticado) {
@@ -57,95 +70,166 @@ export class AppComponent {
 
   abrirLogin() {
     this.mostrarModalLogin = true;
+    this.modoRegistro = false;
     this.formularioLogin = {
+      correo: '',
+      contrasena: ''
+    };
+    this.erroresLogin = {};
+  }
+
+  abrirRegistro() {
+    this.mostrarModalLogin = true;
+    this.modoRegistro = true;
+    this.formularioRegistro = {
       nombre: '',
       correo: '',
       direccion: '',
       telefono: '',
       rol: '',
       departamento: '',
-      municipio: ''
+      municipio: '',
+      contrasena: '',
+      confirmarContrasena: ''
     };
     this.erroresLogin = {};
   }
 
-  validarFormularioLogin(): boolean {
+  validarRegistro(): boolean {
     this.erroresLogin = {};
-    
-    // Validar nombre
-    if (!this.formularioLogin.nombre.trim()) {
+
+    if (!this.formularioRegistro.nombre.trim()) {
       this.erroresLogin['nombre'] = 'El nombre es requerido';
     }
-    
-    // Validar correo
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!this.formularioRegistro.correo.trim()) {
+      this.erroresLogin['correo'] = 'El correo es requerido';
+    } else if (!emailRegex.test(this.formularioRegistro.correo.trim())) {
+      this.erroresLogin['correo'] = 'Correo inválido';
+    }
+
+    if (!this.formularioRegistro.direccion.trim()) {
+      this.erroresLogin['direccion'] = 'La dirección es requerida';
+    }
+
+    const telefonoRegex = /^[0-9+\-\s()]+$/;
+    if (!this.formularioRegistro.telefono.trim()) {
+      this.erroresLogin['telefono'] = 'El teléfono es requerido';
+    } else if (this.formularioRegistro.telefono.trim().length < 7) {
+      this.erroresLogin['telefono'] = 'El teléfono debe tener al menos 7 dígitos';
+    } else if (!telefonoRegex.test(this.formularioRegistro.telefono.trim())) {
+      this.erroresLogin['telefono'] = 'Teléfono inválido';
+    }
+
+    if (!this.formularioRegistro.rol.trim()) {
+      this.erroresLogin['rol'] = 'El rol es requerido';
+    }
+
+    if (!this.formularioRegistro.departamento.trim()) {
+      this.erroresLogin['departamento'] = 'El departamento es requerido';
+    }
+
+    if (!this.formularioRegistro.municipio.trim()) {
+      this.erroresLogin['municipio'] = 'El municipio es requerido';
+    }
+
+    if (!this.formularioRegistro.contrasena.trim()) {
+      this.erroresLogin['contrasena'] = 'La contraseña es requerida';
+    } else if (this.formularioRegistro.contrasena.length < 6) {
+      this.erroresLogin['contrasena'] = 'La contraseña debe tener al menos 6 caracteres';
+    }
+
+    if (this.formularioRegistro.contrasena !== this.formularioRegistro.confirmarContrasena) {
+      this.erroresLogin['confirmarContrasena'] = 'Las contraseñas no coinciden';
+    }
+
+    return Object.keys(this.erroresLogin).length === 0;
+  }
+
+  validarLogin(): boolean {
+    this.erroresLogin = {};
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!this.formularioLogin.correo.trim()) {
       this.erroresLogin['correo'] = 'El correo es requerido';
     } else if (!emailRegex.test(this.formularioLogin.correo.trim())) {
-      this.erroresLogin['correo'] = 'Correo inválido (ej: usuario@ejemplo.com)';
-    }
-    
-    // Validar dirección
-    if (!this.formularioLogin.direccion.trim()) {
-      this.erroresLogin['direccion'] = 'La dirección es requerida';
-    }
-    
-    // Validar teléfono
-    const telefonoRegex = /^[0-9+\-\s()]+$/;
-    if (!this.formularioLogin.telefono.trim()) {
-      this.erroresLogin['telefono'] = 'El teléfono es requerido';
-    } else if (this.formularioLogin.telefono.trim().length < 7) {
-      this.erroresLogin['telefono'] = 'El teléfono debe tener al menos 7 dígitos';
-    } else if (!telefonoRegex.test(this.formularioLogin.telefono.trim())) {
-      this.erroresLogin['telefono'] = 'Teléfono inválido';
+      this.erroresLogin['correo'] = 'Correo inválido';
     }
 
-    // Validar rol y ubicación
-    if (!this.formularioLogin.rol.trim()) {
-      this.erroresLogin['rol'] = 'El rol es requerido';
+    if (!this.formularioLogin.contrasena.trim()) {
+      this.erroresLogin['contrasena'] = 'La contraseña es requerida';
     }
-    if (!this.formularioLogin.departamento.trim()) {
-      this.erroresLogin['departamento'] = 'El departamento es requerido';
-    }
-    if (!this.formularioLogin.municipio.trim()) {
-      this.erroresLogin['municipio'] = 'El municipio es requerido';
-    }
-    
+
     return Object.keys(this.erroresLogin).length === 0;
   }
 
-  iniciarSesion() {
-    if (this.validarFormularioLogin()) {
-      this.usuarioActual = this.formularioLogin.nombre.trim();
-      this.usuarioRol = this.formularioLogin.rol;
-      this.usuarioDepartamento = this.formularioLogin.departamento;
-      this.usuarioMunicipio = this.formularioLogin.municipio;
-      this.usuarioAutenticado = true;
-      this.mostrarModalLogin = false;
-      
-      // Verificar si ya existe fecha de creación, si no, crearla
-      const fechaExistente = localStorage.getItem('usuarioFechaCreacion');
-      if (!fechaExistente) {
-        this.usuarioFechaCreacion = new Date().toISOString().split('T')[0]; // Fecha en formato YYYY-MM-DD
-        localStorage.setItem('usuarioFechaCreacion', this.usuarioFechaCreacion);
-      } else {
-        this.usuarioFechaCreacion = fechaExistente;
-      }
-      
-      // Guardar en localStorage para persistencia
-      localStorage.setItem('usuarioAutenticado', 'true');
-      localStorage.setItem('usuarioActual', this.usuarioActual);
-      localStorage.setItem('usuarioRol', this.usuarioRol);
-      localStorage.setItem('usuarioDepartamento', this.usuarioDepartamento);
-      localStorage.setItem('usuarioMunicipio', this.usuarioMunicipio);
-      localStorage.setItem('usuarioEmail', this.formularioLogin.correo);
-      localStorage.setItem('usuarioDireccion', this.formularioLogin.direccion);
-      localStorage.setItem('usuarioTelefono', this.formularioLogin.telefono);
-      
-      // Redirigir a la página de inicio
-      this.router.navigate(['/inicio']);
+  registrarse() {
+    if (this.validarRegistro()) {
+      this.http.post(`${this.apiUrl}/registro`, {
+        nombre: this.formularioRegistro.nombre.trim(),
+        correo: this.formularioRegistro.correo.trim(),
+        direccion: this.formularioRegistro.direccion.trim(),
+        telefono: this.formularioRegistro.telefono.trim(),
+        rol: this.formularioRegistro.rol,
+        departamento: this.formularioRegistro.departamento,
+        municipio: this.formularioRegistro.municipio,
+        contrasena: this.formularioRegistro.contrasena
+      }).subscribe({
+        next: (response: any) => {
+          alert('✓ Registro exitoso!\n\nAhora puedes iniciar sesión con tus credenciales.');
+          this.modoRegistro = false;
+          this.formularioLogin = {
+            correo: this.formularioRegistro.correo,
+            contrasena: ''
+          };
+        },
+        error: (error) => {
+          this.erroresLogin['general'] = error.error?.error || 'Error en el registro. Por favor intenta nuevamente.';
+          alert(this.erroresLogin['general']);
+        }
+      });
     } else {
-      // Mostrar alerta con errores
+      const erroresTexto = Object.values(this.erroresLogin).join('\n');
+      alert('Por favor corrige los siguientes errores:\n\n' + erroresTexto);
+    }
+  }
+
+  iniciarSesion() {
+    if (this.validarLogin()) {
+      this.http.post(`${this.apiUrl}/login`, {
+        correo: this.formularioLogin.correo.trim(),
+        contrasena: this.formularioLogin.contrasena
+      }).subscribe({
+        next: (response: any) => {
+          const usuario = response.usuario;
+          
+          this.usuarioActual = usuario.nombre;
+          this.usuarioRol = usuario.rol;
+          this.usuarioDepartamento = usuario.departamento;
+          this.usuarioMunicipio = usuario.municipio;
+          this.usuarioCorreo = usuario.correo;
+          this.usuarioFechaCreacion = usuario.createdAt.split('T')[0];
+          this.usuarioAutenticado = true;
+          this.mostrarModalLogin = false;
+
+          // Guardar en localStorage
+          localStorage.setItem('usuarioAutenticado', 'true');
+          localStorage.setItem('usuarioActual', this.usuarioActual);
+          localStorage.setItem('usuarioRol', this.usuarioRol);
+          localStorage.setItem('usuarioDepartamento', this.usuarioDepartamento);
+          localStorage.setItem('usuarioMunicipio', this.usuarioMunicipio);
+          localStorage.setItem('usuarioCorreo', this.usuarioCorreo);
+          localStorage.setItem('usuarioFechaCreacion', this.usuarioFechaCreacion);
+
+          this.router.navigate(['/recibo']);
+        },
+        error: (error) => {
+          this.erroresLogin['general'] = error.error?.error || 'Error en el login. Intenta nuevamente.';
+          alert(this.erroresLogin['general']);
+        }
+      });
+    } else {
       const erroresTexto = Object.values(this.erroresLogin).join('\n');
       alert('Por favor corrige los siguientes errores:\n\n' + erroresTexto);
     }
@@ -176,13 +260,8 @@ export class AppComponent {
     this.usuarioFechaCreacion = '';
     this.mostrarModalConfirmacion = false;
     this.formularioLogin = {
-      nombre: '',
       correo: '',
-      direccion: '',
-      telefono: '',
-      rol: '',
-      departamento: '',
-      municipio: ''
+      contrasena: ''
     };
     
     // Mostrar alerta de confirmación
@@ -217,7 +296,12 @@ export class AppComponent {
       this.usuarioDepartamento = localStorage.getItem('usuarioDepartamento') || '';
       this.usuarioMunicipio = localStorage.getItem('usuarioMunicipio') || '';
       this.usuarioFechaCreacion = localStorage.getItem('usuarioFechaCreacion') || '';
+      this.usuarioCorreo = localStorage.getItem('usuarioCorreo') || '';
       this.usuarioAutenticado = true;
+      
+      // No mostrar modal de login
+      this.mostrarModalLogin = false;
+      this.modoRegistro = false;
     }
   }
 }

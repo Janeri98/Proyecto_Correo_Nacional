@@ -90,122 +90,201 @@
   </div>
 </div>
 
-<!-- Modal de Login -->
+<!-- Modal de Login / Registro -->
 <div class="modal-overlay" *ngIf="mostrarModalLogin" (click)="mostrarModalLogin = false">
   <div class="modal-dialog" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Iniciar Sesión</h2>
-      <button class="btn-close" (click)="mostrarModalLogin = false">✕</button>
+    <!-- MODAL DE REGISTRO -->
+    <div *ngIf="modoRegistro">
+      <div class="modal-header">
+        <h2>Crear Nueva Cuenta</h2>
+        <button class="btn-close" (click)="mostrarModalLogin = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Campo Nombre -->
+        <div class="form-group">
+          <label for="regNombre">Nombre Completo <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="regNombre"
+            class="form-control" 
+            [(ngModel)]="formularioRegistro.nombre"
+            [class.error]="erroresLogin['nombre']"
+            placeholder="Ingresa tu nombre completo"
+            name="nombre" />
+          <span class="error-message" *ngIf="erroresLogin['nombre']">{{ erroresLogin['nombre'] }}</span>
+        </div>
+
+        <!-- Campo Correo -->
+        <div class="form-group">
+          <label for="regCorreo">Correo Electrónico <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="regCorreo"
+            class="form-control" 
+            [(ngModel)]="formularioRegistro.correo"
+            [class.error]="erroresLogin['correo']"
+            placeholder="ejemplo@correo.com"
+            name="correo" />
+          <span class="error-message" *ngIf="erroresLogin['correo']">{{ erroresLogin['correo'] }}</span>
+        </div>
+
+        <!-- Campo Dirección -->
+        <div class="form-group">
+          <label for="regDireccion">Dirección <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="regDireccion"
+            class="form-control" 
+            [(ngModel)]="formularioRegistro.direccion"
+            [class.error]="erroresLogin['direccion']"
+            placeholder="Calle, número, apartamento"
+            name="direccion" />
+          <span class="error-message" *ngIf="erroresLogin['direccion']">{{ erroresLogin['direccion'] }}</span>
+        </div>
+
+        <!-- Campo Teléfono -->
+        <div class="form-group">
+          <label for="regTelefono">Número de Teléfono <span class="required">*</span></label>
+          <input 
+            type="tel" 
+            id="regTelefono"
+            class="form-control" 
+            [(ngModel)]="formularioRegistro.telefono"
+            [class.error]="erroresLogin['telefono']"
+            placeholder="+504 9999-9999"
+            name="telefono" />
+          <span class="error-message" *ngIf="erroresLogin['telefono']">{{ erroresLogin['telefono'] }}</span>
+        </div>
+
+        <!-- Campo Rol -->
+        <div class="form-group">
+          <label for="regRol">Rol de Usuario <span class="required">*</span></label>
+          <select
+            id="regRol"
+            class="form-control"
+            [(ngModel)]="formularioRegistro.rol"
+            [class.error]="erroresLogin['rol']"
+            name="rol">
+            <option value="">Seleccione un rol...</option>
+            <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+          </select>
+          <span class="error-message" *ngIf="erroresLogin['rol']">{{ erroresLogin['rol'] }}</span>
+        </div>
+
+        <!-- Campo Departamento -->
+        <div class="form-group">
+          <label for="regDepartamento">Departamento <span class="required">*</span></label>
+          <select
+            id="regDepartamento"
+            class="form-control"
+            [(ngModel)]="formularioRegistro.departamento"
+            [class.error]="erroresLogin['departamento']"
+            name="departamento">
+            <option value="">Seleccione departamento...</option>
+            <option *ngFor="let departamento of departamentos" [value]="departamento">{{ departamento }}</option>
+          </select>
+          <span class="error-message" *ngIf="erroresLogin['departamento']">{{ erroresLogin['departamento'] }}</span>
+        </div>
+
+        <!-- Campo Municipio -->
+        <div class="form-group">
+          <label for="regMunicipio">Municipio <span class="required">*</span></label>
+          <select
+            id="regMunicipio"
+            class="form-control"
+            [(ngModel)]="formularioRegistro.municipio"
+            [class.error]="erroresLogin['municipio']"
+            name="municipio">
+            <option value="">Seleccione municipio...</option>
+            <option *ngFor="let municipio of municipios" [value]="municipio">{{ municipio }}</option>
+          </select>
+          <span class="error-message" *ngIf="erroresLogin['municipio']">{{ erroresLogin['municipio'] }}</span>
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <label for="regContrasena">Contraseña <span class="required">*</span></label>
+          <input
+            type="password"
+            id="regContrasena"
+            class="form-control"
+            [(ngModel)]="formularioRegistro.contrasena"
+            [class.error]="erroresLogin['contrasena']"
+            placeholder="Mínimo 6 caracteres"
+            name="contrasena" />
+          <span class="error-message" *ngIf="erroresLogin['contrasena']">{{ erroresLogin['contrasena'] }}</span>
+        </div>
+
+        <!-- Campo Confirmar Contraseña -->
+        <div class="form-group">
+          <label for="regConfirmarContrasena">Confirmar Contraseña <span class="required">*</span></label>
+          <input
+            type="password"
+            id="regConfirmarContrasena"
+            class="form-control"
+            [(ngModel)]="formularioRegistro.confirmarContrasena"
+            [class.error]="erroresLogin['confirmarContrasena']"
+            placeholder="Repite tu contraseña"
+            name="confirmarContrasena" />
+          <span class="error-message" *ngIf="erroresLogin['confirmarContrasena']">{{ erroresLogin['confirmarContrasena'] }}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="modoRegistro = false">
+          ← Volver a Iniciar Sesión
+        </button>
+        <button class="btn btn-primary" (click)="registrarse()">
+          Registrarse
+        </button>
+      </div>
     </div>
-    <div class="modal-body">
-      <!-- Campo Nombre -->
-      <div class="form-group">
-        <label for="nombre">Nombre Completo <span class="required">*</span></label>
-        <input 
-          type="text" 
-          id="nombre"
-          class="form-control" 
-          [(ngModel)]="formularioLogin.nombre"
-          [class.error]="erroresLogin['nombre']"
-          placeholder="Ingresa tu nombre completo"
-          name="nombre" />
-        <span class="error-message" *ngIf="erroresLogin['nombre']">{{ erroresLogin['nombre'] }}</span>
-      </div>
 
-      <!-- Campo Correo -->
-      <div class="form-group">
-        <label for="correo">Correo Electrónico <span class="required">*</span></label>
-        <input 
-          type="email" 
-          id="correo"
-          class="form-control" 
-          [(ngModel)]="formularioLogin.correo"
-          [class.error]="erroresLogin['correo']"
-          placeholder="ejemplo@correo.com"
-          name="correo" />
-        <span class="error-message" *ngIf="erroresLogin['correo']">{{ erroresLogin['correo'] }}</span>
+    <!-- MODAL DE LOGIN -->
+    <div *ngIf="!modoRegistro">
+      <div class="modal-header">
+        <h2>Iniciar Sesión</h2>
+        <button class="btn-close" (click)="mostrarModalLogin = false">✕</button>
       </div>
+      <div class="modal-body">
+        <!-- Campo Correo -->
+        <div class="form-group">
+          <label for="loginCorreo">Correo Electrónico <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="loginCorreo"
+            class="form-control" 
+            [(ngModel)]="formularioLogin.correo"
+            [class.error]="erroresLogin['correo']"
+            placeholder="ejemplo@correo.com"
+            name="correo" />
+          <span class="error-message" *ngIf="erroresLogin['correo']">{{ erroresLogin['correo'] }}</span>
+        </div>
 
-      <!-- Campo Dirección -->
-      <div class="form-group">
-        <label for="direccion">Dirección <span class="required">*</span></label>
-        <input 
-          type="text" 
-          id="direccion"
-          class="form-control" 
-          [(ngModel)]="formularioLogin.direccion"
-          [class.error]="erroresLogin['direccion']"
-          placeholder="Calle, número, apartamento"
-          name="direccion" />
-        <span class="error-message" *ngIf="erroresLogin['direccion']">{{ erroresLogin['direccion'] }}</span>
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <label for="loginContrasena">Contraseña <span class="required">*</span></label>
+          <input
+            type="password"
+            id="loginContrasena"
+            class="form-control"
+            [(ngModel)]="formularioLogin.contrasena"
+            [class.error]="erroresLogin['contrasena']"
+            placeholder="Ingresa tu contraseña"
+            name="contrasena" />
+          <span class="error-message" *ngIf="erroresLogin['contrasena']">{{ erroresLogin['contrasena'] }}</span>
+        </div>
       </div>
-
-      <!-- Campo Teléfono -->
-      <div class="form-group">
-        <label for="telefono">Número de Teléfono <span class="required">*</span></label>
-        <input 
-          type="tel" 
-          id="telefono"
-          class="form-control" 
-          [(ngModel)]="formularioLogin.telefono"
-          [class.error]="erroresLogin['telefono']"
-          placeholder="+504 9999-9999"
-          name="telefono" />
-        <span class="error-message" *ngIf="erroresLogin['telefono']">{{ erroresLogin['telefono'] }}</span>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="mostrarModalLogin = false">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="iniciarSesion()">
+          Iniciar Sesión
+        </button>
+        <button class="btn btn-info" (click)="modoRegistro = true" style="margin-left: auto;">
+          Crear Cuenta →
+        </button>
       </div>
-
-      <!-- Campo Rol -->
-      <div class="form-group">
-        <label for="rol">Rol de Usuario <span class="required">*</span></label>
-        <select
-          id="rol"
-          class="form-control"
-          [(ngModel)]="formularioLogin.rol"
-          [class.error]="erroresLogin['rol']"
-          name="rol">
-          <option value="">Seleccione un rol...</option>
-          <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
-        </select>
-        <span class="error-message" *ngIf="erroresLogin['rol']">{{ erroresLogin['rol'] }}</span>
-      </div>
-
-      <!-- Campo Departamento -->
-      <div class="form-group">
-        <label for="departamento">Departamento <span class="required">*</span></label>
-        <select
-          id="departamento"
-          class="form-control"
-          [(ngModel)]="formularioLogin.departamento"
-          [class.error]="erroresLogin['departamento']"
-          name="departamento">
-          <option value="">Seleccione departamento...</option>
-          <option *ngFor="let departamento of departamentos" [value]="departamento">{{ departamento }}</option>
-        </select>
-        <span class="error-message" *ngIf="erroresLogin['departamento']">{{ erroresLogin['departamento'] }}</span>
-      </div>
-
-      <!-- Campo Municipio -->
-      <div class="form-group">
-        <label for="municipio">Municipio <span class="required">*</span></label>
-        <select
-          id="municipio"
-          class="form-control"
-          [(ngModel)]="formularioLogin.municipio"
-          [class.error]="erroresLogin['municipio']"
-          name="municipio">
-          <option value="">Seleccione municipio...</option>
-          <option *ngFor="let municipio of municipios" [value]="municipio">{{ municipio }}</option>
-        </select>
-        <span class="error-message" *ngIf="erroresLogin['municipio']">{{ erroresLogin['municipio'] }}</span>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="mostrarModalLogin = false">
-        Cancelar
-      </button>
-      <button class="btn btn-primary" (click)="iniciarSesion()">
-        Iniciar Sesión
-      </button>
     </div>
   </div>
 </div>
@@ -218,7 +297,7 @@
       <button class="btn-close" (click)="cancelarCerrarSesion()">✕</button>
     </div>
     <div class="modal-body">
-      <p>¿Estás seguro de que deseas cerrar sesión? Se perderán los cambios no guardados.</p>
+      <p>¿Estás seguro de que deseas cerrar sesión?</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="cancelarCerrarSesion()">
