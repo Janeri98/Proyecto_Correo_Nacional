@@ -66,7 +66,27 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
   private cargarFiltros(): void {
     this.municipios = this.reportesService.obtenerMunicipios();
-    this.departamentos = this.reportesService.obtenerDepartamentos();
+
+    // Lista completa de departamentos de Honduras (fallback)
+    const departamentosTodos = [
+      'Atlántida','Choluteca','Colón','Comayagua','Copán','Cortés','El Paraíso',
+      'Francisco Morazán','Gracias a Dios','Intibucá','Islas de la Bahía','La Paz',
+      'Lempira','Ocotepeque','Olancho','Santa Bárbara','Valle','Yoro'
+    ];
+
+    const detectados = this.reportesService.obtenerDepartamentos() || [];
+    // Unir departamentos detectados con la lista completa, manteniendo orden y sin duplicados
+    const unidos = Array.from(new Set([...departamentosTodos, ...detectados]));
+    this.departamentos = unidos.sort((a, b) => a.localeCompare(b));
+  }
+
+  onDepartamentoChange(): void {
+    this.municipios = this.reportesService.obtenerMunicipiosPorDepartamento(this.departamentoSeleccionado);
+    // Si el usuario ya tiene un municipio seleccionado que no pertenece al nuevo departamento, limpiarlo
+    if (!this.municipios.includes(this.municipioSeleccionado)) {
+      this.municipioSeleccionado = '';
+    }
+    this.cargarReporte();
   }
 
   private cargarUsuarioActual(): void {
@@ -79,12 +99,16 @@ export class ReportesComponent implements OnInit, OnDestroy {
 
     this.usuarioActualNombre = usuario?.nombre || nombreLS || 'Desconocido';
     this.usuarioActualRol = usuario?.rol || rolLS || '';
-    this.esAdministrador = (usuario?.rol === 'Administrador') || (rolLS === 'Administrador');
+    this.esAdministrador = (usuario?.rol === 'Administrador' || usuario?.rol === 'Superadministrador') || (rolLS === 'Administrador' || rolLS === 'Superadministrador');
     this.esSupervisor = (usuario?.rol === 'Supervisor') || (rolLS === 'Supervisor');
 
     if (this.esSupervisor) {
       this.departamentoSeleccionado = usuario?.departamento || deptLS || this.departamentoSeleccionado;
       this.municipioSeleccionado = usuario?.municipio || munLS || this.municipioSeleccionado;
+      // Precargar lista de municipios para el departamento del supervisor
+      if (this.departamentoSeleccionado) {
+        this.municipios = this.reportesService.obtenerMunicipiosPorDepartamento(this.departamentoSeleccionado);
+      }
     }
   }
 

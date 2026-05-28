@@ -1,0 +1,71 @@
+<div class="usuarios-page">
+  <div class="page-header">
+    <h2>Gestión de Usuarios</h2>
+    <p>Administrador: asigna roles a los usuarios como Administrador, Supervisor o Ventanilla.</p>
+  </div>
+
+  <div class="usuarios-search-bar">
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar por nombre, correo, departamento o municipio"
+      class="form-control"
+    />
+    <button class="btn btn-primary" (click)="buscarUsuarios()">Buscar usuario</button>
+  </div>
+
+  <div *ngIf="error" class="alert error-alert">{{ error }}</div>
+  <div *ngIf="cargando" class="alert info-alert">Cargando usuarios...</div>
+
+  <div *ngIf="!cargando && usuariosFiltrados.length" class="usuarios-table-wrapper">
+    <table class="usuarios-table">
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Rol Anterior</th>
+          <th>Departamento</th>
+          <th>Municipio</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let usuario of usuariosFiltrados; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ usuario.nombre }}</td>
+          <td>{{ usuario.correo }}</td>
+          <td>
+            <select [(ngModel)]="usuario.rol" class="form-control">
+              <option [value]="usuario.rol" disabled>
+                {{ usuario.rol }} (actual)
+              </option>
+              <option *ngFor="let rol of getRolesDisponibles(usuario)" [value]="rol">{{ rol }}</option>
+            </select>
+          </td>
+          <td>{{ usuario.rolAnterior || 'N/A' }}</td>
+          <td>{{ usuario.departamento }}</td>
+          <td>{{ usuario.municipio }}</td>
+          <td>{{ usuario.createdAt | date:'dd/MM/yyyy' }}</td>
+          <td class="acciones-cell">
+            <button type="button" class="btn btn-primary me-1" (click)="actualizarRol(usuario)">Guardar</button>
+            <button type="button" class="btn btn-danger me-1" (click)="eliminarUsuario(usuario)">Eliminar</button>
+            <button
+              type="button"
+              class="btn btn-secondary me-1"
+              *ngIf="puedePromover(usuario)"
+              (click)="promoverAAdmin(usuario)">
+              Promover a Admin
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!cargando && usuariosFiltrados.length === 0" class="alert info-alert">
+    No se encontró ningún usuario con ese término de búsqueda.
+  </div>
+</div>

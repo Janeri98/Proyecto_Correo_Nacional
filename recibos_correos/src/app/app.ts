@@ -45,7 +45,7 @@ export class AppComponent implements OnInit {
   
   erroresLogin: { [key: string]: string } = {};
   
-  roles = ['Administrador', 'Supervisor', 'Ventanilla'];
+  roles = ['Superadministrador', 'Administrador', 'Supervisor', 'Ventanilla'];
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
@@ -222,7 +222,7 @@ export class AppComponent implements OnInit {
           localStorage.setItem('usuarioCorreo', this.usuarioCorreo);
           localStorage.setItem('usuarioFechaCreacion', this.usuarioFechaCreacion);
 
-          this.router.navigate(['/recibo']);
+          this.router.navigate(['/inicio']);
         },
         error: (error) => {
           this.erroresLogin['general'] = error.error?.error || 'Error en el login. Intenta nuevamente.';

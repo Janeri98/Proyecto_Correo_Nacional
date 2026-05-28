@@ -29,6 +29,28 @@ export interface ReporteData {
 export class ReportesService {
   private readonly apiBaseUrl = 'http://localhost:3000/api'; // Cambia esta URL por la de tu API real.
 
+  // Mapa de departamentos -> municipios (Honduras)
+  private municipiosPorDepartamento: { [dept: string]: string[] } = {
+    'Atlántida': ['La Ceiba','Tela','Jutiapa','Olanchito','Arizona','San Francisco'],
+    'Choluteca': ['Choluteca','San Marcos de Colón','Pespire','Morolica','Namasigüe'],
+    'Colón': ['Trujillo','Tocoa','Bonito Oriental','Balfate','Sonaguera'],
+    'Comayagua': ['Comayagua','Siguatepeque','La Libertad','San José de Comayagua'],
+    'Copán': ['Santa Rosa de Copán','San Pedro Sula','La Entrada','Copán Ruinas'],
+    'Cortés': ['San Pedro Sula','Choloma','La Lima','Omoa','Puerto Cortés'],
+    'El Paraíso': ['Yuscarán','Danlí','El Paraíso','Trojes'],
+    'Francisco Morazán': ['Tegucigalpa','Comayagüela','La Esperanza','Talanga'],
+    'Gracias a Dios': ['Puerto Lempira','Brus Laguna'],
+    'Intibucá': ['La Esperanza','Intibucá','Ercilia Pepín'],
+    'Islas de la Bahía': ['Roatán','Utila','Guanaja'],
+    'La Paz': ['La Paz','Marcala','San Antonio'],
+    'Lempira': ['Gracias','Gracias a Dios','San Juan'],
+    'Ocotepeque': ['Ocotepeque','Sinuapa','Concepción'],
+    'Olancho': ['Juticalpa','Catacamas','Campamento','La Unión'],
+    'Santa Bárbara': ['Santa Bárbara','Choluteca','San Pedro Zacapa'],
+    'Valle': ['Nacaome','Langue','San Lorenzo'],
+    'Yoro': ['Yoro','El Progreso','Olanchito']
+  };
+
   constructor(
     private recibosStorage: RecibosStorageService,
     private authService: AuthService,
@@ -235,7 +257,20 @@ export class ReportesService {
 
   obtenerMunicipios(): string[] {
     const recibos = this.recibosStorage.obtenerRecibos();
-    return [...new Set(recibos.map(r => r.municipio).filter(m => m))];
+    const desdeRecibos = [...new Set(recibos.map(r => r.municipio).filter(m => m))];
+    // Unir municipios detectados con el mapa completo
+    const mapaTodos = Object.values(this.municipiosPorDepartamento).flat();
+    const unidos = Array.from(new Set([...mapaTodos, ...desdeRecibos]));
+    return unidos.sort((a, b) => a.localeCompare(b));
+  }
+
+  obtenerMunicipiosPorDepartamento(departamento?: string): string[] {
+    if (!departamento || departamento.trim() === '') {
+      // devolver todos los municipios
+      return Object.values(this.municipiosPorDepartamento).flat().sort((a, b) => a.localeCompare(b));
+    }
+    const lista = this.municipiosPorDepartamento[departamento] || [];
+    return lista.slice().sort((a, b) => a.localeCompare(b));
   }
 
   obtenerDepartamentos(): string[] {

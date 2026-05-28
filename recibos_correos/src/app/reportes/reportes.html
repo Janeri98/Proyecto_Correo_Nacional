@@ -45,7 +45,7 @@
           <select
             class="form-select"
             [(ngModel)]="departamentoSeleccionado"
-            (change)="cargarReporte()"
+            (change)="onDepartamentoChange()"
             [disabled]="esSupervisor"
           >
             <option value="">Todos los Departamentos</option>

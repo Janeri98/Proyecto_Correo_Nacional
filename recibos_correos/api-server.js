@@ -23,7 +23,7 @@ app.use(express.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
@@ -241,7 +241,7 @@ app.get('/api/auth/usuarios', async (req, res) => {
     const connection = await pool.getConnection();
 
     const [usuarios] = await connection.execute(
-      'SELECT id, nombre, correo, rol, departamento, municipio, createdAt FROM usuarios'
+      'SELECT id, nombre, correo, rol, rolAnterior, departamento, municipio, createdAt FROM usuarios'
     );
 
     connection.release();
@@ -249,6 +249,69 @@ app.get('/api/auth/usuarios', async (req, res) => {
     res.json(usuarios);
   } catch (error) {
     console.error('Error obteniendo usuarios:', error);
+    res.status(500).json({ error: 'Error: ' + error.message });
+  }
+});
+
+app.patch('/api/auth/usuarios/:id/rol', async (req, res) => {
+  const { id } = req.params;
+  const { rol } = req.body;
+  console.log('PATCH /api/auth/usuarios/'+id+'/rol', rol);
+  const rolesValidos = ['Administrador', 'Supervisor', 'Ventanilla'];
+
+  if (!rol || !rolesValidos.includes(rol)) {
+    return res.status(400).json({ error: 'Rol inválido' });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    const [usuarioActual] = await connection.execute(
+      'SELECT rol FROM usuarios WHERE id = ?',
+      [id]
+    );
+
+    if (!usuarioActual || usuarioActual.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const rolPrevio = usuarioActual[0].rol;
+    const [result] = await connection.execute(
+      'UPDATE usuarios SET rol = ?, rolAnterior = ? WHERE id = ?',
+      [rol, rolPrevio, id]
+    );
+    connection.release();
+
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({ message: 'Rol actualizado correctamente' });
+  } catch (error) {
+    console.error('Error actualizando rol:', error);
+    res.status(500).json({ error: 'Error: ' + error.message });
+  }
+});
+
+app.delete('/api/auth/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  console.log('DELETE /api/auth/usuarios/'+id);
+
+  try {
+    const connection = await pool.getConnection();
+    const [result] = await connection.execute(
+      'DELETE FROM usuarios WHERE id = ?',
+      [id]
+    );
+    connection.release();
+
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.json({ message: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    console.error('Error eliminando usuario:', error);
     res.status(500).json({ error: 'Error: ' + error.message });
   }
 });

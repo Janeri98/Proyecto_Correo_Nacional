@@ -1,5 +1,15 @@
 <div class="inicio-container">
-  <div class="welcome-card">
+  <!-- Pantalla de bienvenida sin autenticar -->
+  <div *ngIf="!usuario" class="welcome-screen">
+    <div class="welcome-image">
+      <img src="assets/Imagen.png" alt="Logo Correos de Honduras" />
+      <h2 style="margin-top: 30px; color: #333;">Correos de Honduras</h2>
+      <p style="color: #666; font-size: 16px;">Recibos de Pago</p>
+    </div>
+  </div>
+
+  <!-- Contenido después de autenticar -->
+  <div *ngIf="usuario" class="welcome-card">
     <h1>Bienvenido al Sistema de Gestión</h1>
     <p>Correos de Honduras - Recibos de Pago</p>
 

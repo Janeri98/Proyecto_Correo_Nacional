@@ -3,7 +3,7 @@
   <div *ngIf="!reciboGenerado" class="form-section">
     <div class="form-header" style="text-align: center;">
       <div class="logo-container">
-        <img src="assets/Imagen.png" alt="Logo" style="max-height: 80px; margin-bottom: 10px;">
+        <img src="/assets/Imagen.png" alt="Logo" style="max-height: 80px; margin-bottom: 10px;">
       </div>
       <h2>Generar Recibo de Pago</h2>
       <p class="receipt-number">Recibo Nº: <strong>{{ numeroRecibo }}</strong></p>
@@ -62,8 +62,10 @@
 
           <div class="form-group">
             <label>País <span class="required">*</span></label>
-            <input type="text" class="form-control" [ngClass]="{'error': errores['remitenteCountry']}"
-              [(ngModel)]="recibo.remitente.pais" placeholder="Honduras" name="remitenteCountry" />
+            <select class="form-control" [ngClass]="{'error': errores['remitenteCountry']}"
+              [(ngModel)]="recibo.remitente.pais" name="remitenteCountry">
+              <option *ngFor="let pais of paisesRemitente" [value]="pais">{{ pais }}</option>
+            </select>
             <span class="error-message" *ngIf="errores['remitenteCountry']">{{ errores['remitenteCountry'] }}</span>
           </div>
         </div>
@@ -101,8 +103,11 @@
 
           <div class="form-group">
             <label>País <span class="required">*</span></label>
-            <input type="text" class="form-control" [ngClass]="{'error': errores['destinatarioCountry']}"
-              [(ngModel)]="recibo.destinatario.pais" placeholder="Honduras" name="destinatarioCountry" />
+            <select class="form-control" [ngClass]="{'error': errores['destinatarioCountry']}"
+              [(ngModel)]="recibo.destinatario.pais" name="destinatarioCountry">
+              <option value="">Seleccione un país...</option>
+              <option *ngFor="let pais of paisesDestinatario" [value]="pais">{{ pais }}</option>
+            </select>
             <span class="error-message" *ngIf="errores['destinatarioCountry']">{{ errores['destinatarioCountry'] }}</span>
           </div>
         </div>
@@ -146,9 +151,15 @@
           </div>
           
           <!-- Mostrar servicio seleccionado -->
-          <div class="selected-service" *ngIf="recibo.tipoServicio">
+          <div class="selected-service" *ngIf="recibo.tipoServicio.trim()">
             <strong>Seleccionado:</strong> {{ recibo.tipoServicio }}
             <button type="button" class="btn-clear" (click)="limpiarServicio()">✕</button>
+          </div>
+          <div class="selected-service" *ngIf="recibo.tipoServicioSello">
+            <strong>Sello asociado:</strong> {{ recibo.tipoServicioSello }}
+          </div>
+          <div class="selected-service-note" *ngIf="recibo.tipoServicio.includes('Sellos') || recibo.tipoServicioSello">
+            Has seleccionado un servicio de sellos. Completa el precio y cantidad de sellos abajo.
           </div>
           
           <span class="error-message" *ngIf="errores['tipoServicio']">{{ errores['tipoServicio'] }}</span>
@@ -157,7 +168,7 @@
 
       <!-- FILA 4: Precio de Sello (Condicional) -->
       <div class="form-row"
-        *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105')">
+        *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105') || recibo.tipoServicioSello">
         <div class="form-group">
           <label>Precio del Sello (L.) <span class="required">*</span></label>
           <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello"
@@ -240,10 +251,10 @@
   <!-- Recibo Generado -->
   <div *ngIf="reciboGenerado" id="recibo-pdf-content" class="recibo-display">
     <!-- Print Header -->
-    <div class="recibo-header print-only">
+    <div class="recibo-header">
       <div class="logo-container">
         <div class="logo-icon">
-          <img src="assets/Imagen.png" alt="Logo Correos de Honduras" class="logo-img">
+          <img src="/assets/Imagen.png" alt="Logo Correos de Honduras" class="logo-img">
         </div>
 
         <div class="header-text">
@@ -252,8 +263,11 @@
         </div>
 
         <div class="logo-derecha">
-          <img src="assets/pa.png.png" alt="Logo Honduras" class="logo-icon2">
-          <H3>HN</H3>
+          <img src="/assets/pa.png.png" alt="Logo Honduras" class="logo-icon2">
+          <h3>HN</h3>
+        </div>
+        <div class="qr-box" *ngIf="qrUrl">
+          <img [src]="qrUrl" alt="Código QR" class="qr-code" />
         </div>
       </div>
     </div>
@@ -274,54 +288,36 @@
           <td class="label">Fecha de Pago:</td>
           <td class="value"><strong>{{ reciboGenerado.fechaPago }}</strong></td>
         </tr>
-        
-        <!-- Remitente -->
+
         <tr style="background-color: #f9f9f9; font-weight: bold;">
-          <td class="label" colspan="2">REMITENTE (Quien envía):</td>
+          <td class="label" colspan="2">REMITENTE</td>
         </tr>
         <tr>
-          <td class="label">  Nombre:</td>
+          <td class="label">Nombre:</td>
           <td class="value"><strong>{{ reciboGenerado.remitente?.nombre || 'No especificado' }}</strong></td>
         </tr>
         <tr>
-          <td class="label">  Dirección:</td>
+          <td class="label">Dirección:</td>
           <td class="value"><strong>{{ reciboGenerado.remitente?.direccion || 'No especificada' }}</strong></td>
         </tr>
         <tr>
-          <td class="label">  Email:</td>
-          <td class="value"><strong>{{ reciboGenerado.remitente?.email || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">  Teléfono:</td>
-          <td class="value"><strong>{{ reciboGenerado.remitente?.telefono || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">  País:</td>
+          <td class="label">País:</td>
           <td class="value"><strong>{{ reciboGenerado.remitente?.pais || 'No especificado' }}</strong></td>
         </tr>
 
-        <!-- Destinatario -->
         <tr style="background-color: #f9f9f9; font-weight: bold;">
-          <td class="label" colspan="2">DESTINATARIO (Quien recibe):</td>
+          <td class="label" colspan="2">DESTINATARIO</td>
         </tr>
         <tr>
-          <td class="label">  Nombre:</td>
+          <td class="label">Nombre:</td>
           <td class="value"><strong>{{ reciboGenerado.destinatario?.nombre || 'No especificado' }}</strong></td>
         </tr>
         <tr>
-          <td class="label">  Dirección:</td>
+          <td class="label">Dirección:</td>
           <td class="value"><strong>{{ reciboGenerado.destinatario?.direccion || 'No especificada' }}</strong></td>
         </tr>
         <tr>
-          <td class="label">  Email:</td>
-          <td class="value"><strong>{{ reciboGenerado.destinatario?.email || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">  Teléfono:</td>
-          <td class="value"><strong>{{ reciboGenerado.destinatario?.telefono || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">  País:</td>
+          <td class="label">País:</td>
           <td class="value"><strong>{{ reciboGenerado.destinatario?.pais || 'No especificado' }}</strong></td>
         </tr>
 
@@ -332,19 +328,6 @@
         <tr>
           <td class="label">Tipo de Pago:</td>
           <td class="value"><strong>{{ reciboGenerado.tipoPago || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">Grupo Geográfico:</td>
-          <td class="value"><strong>{{ grupos.find(g => g.id === reciboGenerado.grupo)?.nombre || 'No especificado'
-              }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">Concepto:</td>
-          <td class="value"><strong>{{ reciboGenerado.concepto || 'No especificado' }}</strong></td>
-        </tr>
-        <tr>
-          <td class="label">Peso:</td>
-          <td class="value"><strong>{{ reciboGenerado.peso || '0' }} g</strong></td>
         </tr>
         <tr class="total-row">
           <td class="label">TOTAL A PAGAR:</td>

@@ -42,6 +42,16 @@
         <i class="icon">📊</i>
         <span>Reportes</span>
       </a>
+      <a
+        routerLink="/usuarios"
+        routerLinkActive="active"
+        class="nav-item"
+        (click)="manejarClickNav('/usuarios', $event)"
+        *ngIf="usuarioAutenticado && usuarioRol === 'Superadministrador'"
+      >
+        <i class="icon">👥</i>
+        <span>Usuarios</span>
+      </a>
       <a (click)="abrirLogin()" class="nav-item" *ngIf="!usuarioAutenticado">
         <i class="icon">👥</i>
         <span>Iniciar Sesión</span>

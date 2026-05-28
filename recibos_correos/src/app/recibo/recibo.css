@@ -370,10 +370,26 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .logo-icon {
   flex: 0 0 auto;
+}
+
+.qr-box {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-code {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  background: white;
 }
 
 .logo-img {
@@ -448,7 +464,7 @@
 .receipt-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .receipt-table tr {
@@ -460,8 +476,8 @@
 }
 
 .receipt-table td {
-  padding: 12px 15px;
-  font-size: 13px;
+  padding: 10px 12px;
+  font-size: 12px;
 }
 
 .receipt-table td.label {

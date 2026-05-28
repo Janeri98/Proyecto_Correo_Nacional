@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RecibosStorageService } from '../services/recibos-storage.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import * as QRCode from 'qrcode';
 import { AuthService, Usuario } from '../services/auth.service';
 
 @Component({
@@ -38,6 +39,7 @@ export class ReciboComponent {
     peso: null as number | null,
     costo: null as number | null,
     tipoServicio: '',
+    tipoServicioSello: '',
     tipoPago: '',
     grupo: 'grupo1',
     precioSello: null as number | null,
@@ -47,6 +49,7 @@ export class ReciboComponent {
   };
 
   reciboGenerado: any = null;
+  qrUrl: string = '';
   numeroRecibo = Math.floor(Math.random() * 1000000);
   errores: { [key: string]: string } = {};
   fechaHoy: string = ''; // NUEVO: Fecha de hoy únicamente permitidas
@@ -72,7 +75,7 @@ export class ReciboComponent {
     '45299 - Entrega de paquetes postal',
     '45299 - Entrega de pequeño paquete postal ',
     '44113 - Certificado Nacional',
-    '44114 - Certificado Internacional ',
+    '44114 - Certificado Internacional',
     '44112 - Servicio Express',
     '44115 - Acuse de Recibo',
     '49999 - Sacas Vacías',
@@ -86,6 +89,33 @@ export class ReciboComponent {
 
   // NUEVO: Tipos de pago
   tiposPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
+
+  // NUEVO: Países para remitente y destinatario
+  paisesRemitente = ['Honduras'];
+  paisesDestinatario = [
+    'Afganistán', 'Albania', 'Alemania', 'Andorra', 'Angola', 'Antigua y Barbuda', 'Arabia Saudita', 'Argelia',
+    'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaiyán', 'Bahamas', 'Baréin', 'Bangladés', 'Barbados',
+    'Bielorrusia', 'Bélgica', 'Belice', 'Benín', 'Bután', 'Bolivia', 'Bosnia y Herzegovina', 'Botsuana', 'Brasil',
+    'Brunéi', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Camboya', 'Camerún', 'Canadá', 'Catar', 'Chad',
+    'Chile', 'China', 'Chipre', 'Colombia', 'Comoras', 'Corea del Norte', 'Corea del Sur', 'Costa de Marfil', 'Costa Rica',
+    'Croacia', 'Cuba', 'Dinamarca', 'Dominica', 'Ecuador', 'Egipto', 'El Salvador', 'Emiratos Árabes Unidos', 'Eritrea',
+    'Eslovaquia', 'Eslovenia', 'España', 'Estados Unidos', 'Estonia', 'Esuatini', 'Etiopía', 'Fiyi', 'Filipinas', 'Finlandia',
+    'Francia', 'Gabón', 'Gambia', 'Georgia', 'Ghana', 'Granada', 'Grecia', 'Guatemala', 'Guinea', 'Guinea-Bisáu',
+    'Guinea Ecuatorial', 'Guyana', 'Haití', 'Honduras', 'Hungría', 'India', 'Indonesia', 'Irak', 'Irán', 'Irlanda',
+    'Islandia', 'Islas Marshall', 'Islas Salomón', 'Israel', 'Italia', 'Jamaica', 'Japón', 'Jordania', 'Kazajistán',
+    'Kenia', 'Kirguistán', 'Kiribati', 'Kuwait', 'Laos', 'Letonia', 'Líbano', 'Lesoto', 'Liberia', 'Libia',
+    'Liechtenstein', 'Lituania', 'Luxemburgo', 'Macedonia del Norte', 'Madagascar', 'Malasia', 'Malaui', 'Maldivas',
+    'Malí', 'Malta', 'Marruecos', 'Mauricio', 'Mauritania', 'México', 'Micronesia', 'Moldova', 'Mónaco', 'Mongolia',
+    'Montenegro', 'Mozambique', 'Namibia', 'Nauru', 'Nepal', 'Nicaragua', 'Níger', 'Nigeria', 'Noruega', 'Nueva Zelanda',
+    'Omán', 'Países Bajos', 'Pakistán', 'Palaos', 'Panamá', 'Papúa Nueva Guinea', 'Paraguay', 'Perú', 'Polonia',
+    'Portugal', 'Reino Unido', 'República Centroafricana', 'República Checa', 'República del Congo',
+    'República Democrática del Congo', 'República Dominicana', 'Ruanda', 'Rumania', 'Rusia', 'Samoa',
+    'San Cristóbal y Nieves', 'San Marino', 'San Vicente y las Granadinas', 'Santa Lucía', 'Santo Tomé y Príncipe',
+    'Senegal', 'Serbia', 'Seychelles', 'Sierra Leona', 'Singapur', 'Siria', 'Somalia', 'Sri Lanka',
+    'Suecia', 'Suiza', 'Surinam', 'Tailandia', 'Tayikistán', 'Tanzania', 'Timor Oriental', 'Togo', 'Tonga',
+    'Trinidad y Tobago', 'Túnez', 'Turkmenistán', 'Turquía', 'Tuvalu', 'Ucrania', 'Uganda', 'Uruguay',
+    'Uzbekistán', 'Vanuatu', 'Vaticano', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabue'
+  ];
 
   // NUEVO: Precios disponibles para Sellos Postales y Filatelicos
   preciosSello = [5, 10, 50, 100, 200];
@@ -104,6 +134,7 @@ export class ReciboComponent {
     const hoy = new Date();
     this.fechaHoy = hoy.toISOString().split('T')[0];
     this.recibo.fecha = this.fechaHoy; // Pre-llenar con la fecha de hoy
+    this.recibo.remitente.pais = this.paisesRemitente[0];
     this.recibo.precioSello = null; // Inicializar precio del sello
   }
 
@@ -192,26 +223,28 @@ export class ReciboComponent {
 
   // NUEVA FUNCIÓN: Manejar cambio de servicio
   onServicioChange() {
-    const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
-
-    // Cargos adicionales por certificados: nacional = 10 L, internacional = 50 L
     const esCertificadoNacional = this.recibo.tipoServicio.includes('44113');
     const esCertificadoInternacional = this.recibo.tipoServicio.includes('44114');
-    const cargoCertificado = esCertificadoNacional ? 10 : esCertificadoInternacional ? 50 : 0;
+
+    if ((esCertificadoNacional || esCertificadoInternacional) && !this.recibo.tipoServicioSello) {
+      this.recibo.tipoServicioSello = '44105 - Sellos Postales';
+    }
+
+    const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105') ||
+      this.recibo.tipoServicioSello.includes('44105') || this.recibo.tipoServicioSello.includes('45105');
+
     if (!esSellos) {
-      // Si no es sello, limpiar el precio del sello
       this.recibo.precioSello = null;
     }
-    // Recalcular costo
     this.calcularCosto();
   }
 
   // NUEVO: Función para calcular costo automáticamente
   calcularCosto() {
     // NUEVO: Verificar si es Sellos Postales o Filatelicos
-    const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
+    const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105') ||
+      this.recibo.tipoServicioSello.includes('44105') || this.recibo.tipoServicioSello.includes('45105');
 
-    // Cargos adicionales por certificados: nacional = 10 L, internacional = 50 L
     const esCertificadoNacional = this.recibo.tipoServicio.includes('44113');
     const esCertificadoInternacional = this.recibo.tipoServicio.includes('44114');
     let cargoCertificado = 0;
@@ -337,6 +370,12 @@ export class ReciboComponent {
 
   seleccionarServicio(servicio: string) {
     this.recibo.tipoServicio = servicio;
+    this.recibo.tipoServicioSello = '';
+
+    if (servicio.includes('44113') || servicio.includes('44114')) {
+      this.recibo.tipoServicioSello = '44105 - Sellos Postales';
+    }
+
     this.busquedaServicio = '';
     this.mostrarListaServicios = false;
     this.servicioSeleccionadoIndex = -1;
@@ -345,6 +384,8 @@ export class ReciboComponent {
 
   limpiarServicio() {
     this.recibo.tipoServicio = '';
+    this.recibo.tipoServicioSello = '';
+    this.recibo.precioSello = null;
     this.busquedaServicio = '';
     this.mostrarListaServicios = false;
     this.servicioSeleccionadoIndex = -1;
@@ -484,6 +525,14 @@ export class ReciboComponent {
       fechaPago: this.recibo.fecha || new Date().toISOString().split('T')[0],
       total: this.recibo.costo || 0,
     };
+
+    // Generar código QR localmente en Data URL
+    this.generarQrCodeDataUrl(this.reciboGenerado).then((url) => {
+      this.qrUrl = url;
+    }).catch((error) => {
+      console.error('Error generando QR:', error);
+      this.qrUrl = '';
+    });
 
     // NUEVO: Guardar el recibo en el almacenamiento
     this.recibosStorage.guardarRecibo(this.reciboGenerado);
@@ -651,7 +700,45 @@ export class ReciboComponent {
       // En caso de error, restaurar los botones
       elementosNoPrint.forEach((boton, index) => {
         boton.style.display = displayOriginales[index] || '';
-      });      elemento.classList.remove('pdf-ticket');    });
+      });
+      elemento.classList.remove('pdf-ticket');
+    });
+  }
+
+  private generarQrCodeDataUrl(recibo: any): Promise<string> {
+    const lines = [
+      'CORREOS DE HONDURAS - RECIBO DE PAGO',
+      `Recibo Nº: ${recibo.numero}`,
+      `Oficina/Agencia: ${recibo.oficina || ''}`,
+      `Fecha de Pago: ${recibo.fechaPago}`,
+      '',
+      'REMITENTE',
+      `Nombre: ${recibo.remitente?.nombre || ''}`,
+      `Dirección: ${recibo.remitente?.direccion || ''}`,
+      `País: ${recibo.remitente?.pais || ''}`,
+      '',
+      'DESTINATARIO',
+      `Nombre: ${recibo.destinatario?.nombre || ''}`,
+      `Dirección: ${recibo.destinatario?.direccion || ''}`,
+      `País: ${recibo.destinatario?.pais || ''}`,
+      '',
+      `Tipo de Servicio: ${recibo.tipoServicio || ''}`,
+      `Tipo de Pago: ${recibo.tipoPago || ''}`,
+      `Concepto: ${recibo.concepto || ''}`,
+      '',
+      `TOTAL A PAGAR: L. ${(recibo.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    ];
+
+    const texto = lines.join('\n');
+
+    return QRCode.toDataURL(texto, {
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#ffffff',
+      },
+    });
   }
 
   nuevoRecibo() {
@@ -677,6 +764,7 @@ export class ReciboComponent {
       peso: null,
       costo: null,
       tipoServicio: '',
+      tipoServicioSello: '',
       tipoPago: '',
       grupo: 'grupo1',
       precioSello: null,
@@ -714,6 +802,7 @@ export class ReciboComponent {
       peso: null,
       costo: null,
       tipoServicio: '',
+      tipoServicioSello: '',
       tipoPago: '',
       grupo: 'grupo1',
       precioSello: null,

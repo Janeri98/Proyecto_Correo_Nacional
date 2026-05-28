@@ -16,9 +16,10 @@ export class AuthService {
 
   // Definir jerarquía de roles
   private rolesJerarquia = {
-    'Administrador': 3, // Acceso total
-    'Supervisor': 2,    // Acceso a reportes y recibos
-    'Ventanilla': 1     // Solo ingreso de recibos
+    'Superadministrador': 4, // Acceso total y gestión de usuarios
+    'Administrador': 3,      // Acceso total
+    'Supervisor': 2,         // Acceso a reportes y recibos
+    'Ventanilla': 1          // Solo ingreso de recibos
   };
 
   constructor() { }
@@ -40,7 +41,11 @@ export class AuthService {
   }
 
   esAdministrador(usuario: Usuario): boolean {
-    return usuario.rol === 'Administrador';
+    return usuario.rol === 'Administrador' || usuario.rol === 'Superadministrador';
+  }
+
+  esSuperAdministrador(usuario: Usuario): boolean {
+    return usuario.rol === 'Superadministrador';
   }
 
   requiereContrasena(rol: string): boolean {

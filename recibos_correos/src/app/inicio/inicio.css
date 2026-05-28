@@ -1,5 +1,32 @@
 .inicio-container {
   padding: 40px 20px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-screen {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.welcome-image {
+  text-align: center;
+  background: white;
+  padding: 50px 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-image img {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
 }
 
 .welcome-card {
@@ -23,9 +50,28 @@
   margin-bottom: 40px;
 }
 
+.alert {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  text-align: left;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  float: right;
+}
+
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   margin-bottom: 40px;
 }
@@ -149,6 +195,15 @@
     justify-content: center;
     padding: 14px 20px;
     font-size: 15px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

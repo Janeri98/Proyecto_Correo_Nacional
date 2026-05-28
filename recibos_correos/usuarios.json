@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1,
+        "nombre": "Kevin Herrera",
+        "correo": "kevingeoavanny17@gmail.com",
+        "rol": "Administrador",
+        "departamento": "Francisco Morazán",
+        "municipio": "Tegucigalpa",
+        "createdAt": "2026-05-22T17:55:11.000Z"
+    },
+    {
+        "id": 2,
+        "nombre": "Kevin H",
+        "correo": "kevinherrera0177@gmail.com",
+        "rol": "Superadministrador",
+        "departamento": "Francisco Morazán",
+        "municipio": "Tegucigalpa",
+        "createdAt": "2026-05-26T17:54:23.000Z"
+    },
+    {
+        "id": 3,
+        "nombre": "Janeri Garcia",
+        "correo": "janerija33@gmail.com",
+        "rol": "Supervisor",
+        "departamento": "Francisco Morazán",
+        "municipio": "Tegucigalpa",
+        "createdAt": "2026-05-26T18:45:55.000Z"
+    }
+]
