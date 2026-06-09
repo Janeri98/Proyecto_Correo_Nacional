@@ -1,0 +1,131 @@
+<div class="busqueda-container">
+  <div class="busqueda-header">
+    <h1>🔍 Buscar Recibos Generados</h1>
+    <p *ngIf="!esVentanilla">Consulta, filtra y descarga información de recibos</p>
+    <p *ngIf="esVentanilla">Busca tus recibos generados y descarga información</p>
+  </div>
+
+  <!-- Filtros de búsqueda -->
+  <div class="filtros-section">
+    <!-- VENTANILLA: Filtros limitados -->
+    <div *ngIf="esVentanilla" class="filtros-grid">
+      <div class="filtro-group">
+        <label for="numero">Número de Recibo:</label>
+        <input type="text" id="numero" [(ngModel)]="filtro.numero" placeholder="Ej: 380742">
+      </div>
+      <div class="filtro-group">
+        <label for="destinatario">Buscar Cliente/Destinatario:</label>
+        <input type="text" id="destinatario" [(ngModel)]="filtro.destinatario" placeholder="Nombre del cliente">
+      </div>
+    </div>
+
+    <!-- ADMINISTRADOR/SUPERVISOR: Todos los filtros -->
+    <div *ngIf="!esVentanilla" class="filtros-grid">
+      <div class="filtro-group">
+        <label for="numero">Número de Recibo:</label>
+        <input type="text" id="numero" [(ngModel)]="filtro.numero" placeholder="Ej: 001, 002">
+      </div>
+      
+      <div class="filtro-group">
+        <label for="fecha">Fecha específica:</label>
+        <input type="date" id="fecha" [(ngModel)]="filtro.fecha">
+      </div>
+      
+      <div class="filtro-group">
+        <label for="destinatario">Destinatario:</label>
+        <input type="text" id="destinatario" [(ngModel)]="filtro.destinatario" placeholder="Nombre del destinatario">
+      </div>
+      
+      <div class="filtro-group">
+        <label for="tipoServicio">Tipo de Servicio:</label>
+        <input type="text" id="tipoServicio" [(ngModel)]="filtro.tipoServicio" placeholder="Ej: Certificado, Envío">
+      </div>
+
+      <div class="filtro-group">
+        <label for="fechaInicio">Fecha Inicio (Rango):</label>
+        <input type="date" id="fechaInicio" [(ngModel)]="filtro.fechaInicio">
+      </div>
+
+      <div class="filtro-group">
+        <label for="fechaFin">Fecha Fin (Rango):</label>
+        <input type="date" id="fechaFin" [(ngModel)]="filtro.fechaFin">
+      </div>
+    </div>
+
+    <div class="filtros-buttons">
+      <button class="btn btn-primary" (click)="buscar()">🔎 Buscar</button>
+      <button class="btn btn-secondary" (click)="limpiarFiltros()">🔄 Limpiar Filtros</button>
+      <button class="btn btn-info" (click)="toggleEstadisticas()">📊 {{ mostrarEstadisticas ? 'Ocultar' : 'Mostrar' }} Estadísticas</button>
+      <button class="btn btn-success" (click)="exportarResultados()" [disabled]="recibosFiltered.length === 0">📥 Descargar CSV</button>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div *ngIf="mostrarEstadisticas" class="estadisticas-section">
+    <div class="estadistica-card">
+      <h3>Recibos Encontrados</h3>
+      <p class="numero">{{ estadisticas.totalRecibos }}</p>
+    </div>
+    <div class="estadistica-card">
+      <h3>Recibos Hoy</h3>
+      <p class="numero">{{ estadisticas.totalRecibosHoy }}</p>
+    </div>
+    <div class="estadistica-card">
+      <h3>Monto Total</h3>
+      <p class="numero">L. {{ estadisticas.montoTotal | number:'1.2-2' }}</p>
+    </div>
+    <div class="estadistica-card">
+      <h3>Monto Hoy</h3>
+      <p class="numero">L. {{ estadisticas.montoTotalHoy | number:'1.2-2' }}</p>
+    </div>
+  </div>
+
+  <!-- Tabla de resultados -->
+  <div class="resultados-section">
+    <h2>Resultados de Búsqueda ({{ recibosFiltered.length }} recibos encontrados)</h2>
+    
+    <div *ngIf="recibos.length === 0" class="alerta-info">
+      <p>⚠️ No hay recibos disponibles en el sistema. Genera algunos recibos primero.</p>
+    </div>
+
+    <div *ngIf="recibos.length > 0 && recibosFiltered.length === 0" class="no-resultados">
+      <p>📭 No se encontraron recibos con los criterios de búsqueda</p>
+    </div>
+
+    <div *ngIf="recibosFiltered.length > 0" class="tabla-responsive">
+      <table class="tabla-recibos">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Número</th>
+            <th>Fecha</th>
+            <th>Destinatario</th>
+            <th>Concepto</th>
+            <th>Monto (L.)</th>
+            <th>Tipo Servicio</th>
+            <th *ngIf="!esVentanilla">Oficina</th>
+            <th *ngIf="!esVentanilla">Departamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let recibo of recibosFiltered; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td><strong>{{ recibo.numero }}</strong></td>
+            <td>{{ obtenerFecha(recibo) }}</td>
+            <td>{{ recibo.destinatario || 'N/A' }}</td>
+            <td>{{ recibo.concepto || 'N/A' }}</td>
+            <td>{{ (recibo.total || recibo.costo || 0) | number:'1.2-2' }}</td>
+            <td>{{ recibo.tipoServicio || 'N/A' }}</td>
+            <td *ngIf="!esVentanilla">{{ recibo.oficina || 'N/A' }}</td>
+            <td *ngIf="!esVentanilla">{{ recibo.departamento || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Botón volver -->
+  <div class="boton-volver">
+    <a routerLink="/inicio" class="btn btn-secondary">← Volver al Inicio</a>
+  </div>
+</div>
