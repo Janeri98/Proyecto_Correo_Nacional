@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { RecibosStorageService } from '../services/recibos-storage.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -10,7 +11,7 @@ import { AuthService, Usuario } from '../services/auth.service';
 @Component({
   selector: 'app-recibo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './recibo.html',
   styleUrls: ['./recibo.css'],
 })
@@ -45,7 +46,10 @@ export class ReciboComponent {
     precioSello: null as number | null,
     cantidadSellos: 1,
     departamento: '',
-    municipio: ''
+    municipio: '',
+    costoBase: null as number | null,
+    impuesto: 0,
+    total: null as number | null
   };
 
   reciboGenerado: any = null;
@@ -87,8 +91,27 @@ export class ReciboComponent {
     'Otros ingresos por:',
   ];
 
-  // NUEVO: Tipos de pago
-  tiposPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
+  // NUEVO: Tipos de pago agrupados por categoría
+  tiposPago = [
+    { categoria: 'Efectivo', opciones: ['Efectivo'] },
+    { categoria: 'Tarjetas', opciones: ['Tarjeta Crédito', 'Tarjeta Débito'] },
+    { categoria: 'Transferencia', opciones: ['Transferencia Bancaria', 'Depósito Bancario'] },
+    { categoria: 'Otros', opciones: ['Cheque', 'Billetera Digital', 'Mixto'] }
+  ];
+
+  // Impuestos por tipo de pago en Honduras
+  // ITF (Impuesto sobre Transacciones Financieras) = 3%
+  // Comisión bancaria adicional = 2-3% (verificar con tu banco)
+  impuestosPago = {
+    'Efectivo': 0,           // Sin impuesto
+    'Tarjeta Crédito': 0.03, // 3% ITF (cambiar a 0.05 si es 5% en tu banco)
+    'Tarjeta Débito': 0.02,  // 2% (verificar con tu banco)
+    'Transferencia Bancaria': 0,     // Sin impuesto directo
+    'Depósito Bancario': 0,          // Sin impuesto directo
+    'Cheque': 0,             // Sin impuesto
+    'Billetera Digital': 0.02, // 2% (según el servicio)
+    'Mixto': 0.015           // 1.5% promedio
+  };
 
   // NUEVO: Países para remitente y destinatario
   paisesRemitente = ['Honduras'];
@@ -129,7 +152,10 @@ export class ReciboComponent {
     { id: 'grupo5', nombre: 'Resto del Mundo (GRUPO V)' },
   ];
 
-  constructor(private recibosStorage: RecibosStorageService, private authService: AuthService) {
+  // URLs de la API
+  apiUrlRecibos = 'http://localhost:3000/api/recibos';
+
+  constructor(private recibosStorage: RecibosStorageService, private authService: AuthService, private http: HttpClient) {
     // NUEVO: Inicializar fecha a hoy únicamente
     const hoy = new Date();
     this.fechaHoy = hoy.toISOString().split('T')[0];
@@ -308,7 +334,7 @@ export class ReciboComponent {
         costoTotal += cargoCertificado;
       }
 
-      this.recibo.costo = costoTotal > 0 ? costoTotal : null;
+      this.recibo.costoBase = costoTotal > 0 ? costoTotal : null;
     } else {
       // Para otros servicios: usar tabla de precios por grupo geográfico
       let costoBase = 0;
@@ -355,11 +381,36 @@ export class ReciboComponent {
       // Sumar cargo por certificado y asignar costo final
       const costoFinal = costoBase + cargoCertificado;
       if (costoFinal > 0) {
-        this.recibo.costo = costoFinal;
+        this.recibo.costoBase = costoFinal;
       } else {
-        this.recibo.costo = null;
+        this.recibo.costoBase = null;
       }
     }
+
+    // Calcular total con impuestos según tipo de pago
+    this.calcularTotalConImpuesto();
+  }
+
+  // NUEVO: Calcular total con impuestos según tipo de pago
+  calcularTotalConImpuesto() {
+    if (!this.recibo.costoBase || this.recibo.costoBase <= 0) {
+      this.recibo.impuesto = 0;
+      this.recibo.total = null;
+      this.recibo.costo = null;
+      return;
+    }
+
+    // Obtener el porcentaje de impuesto según el tipo de pago
+    const tipoPago = this.recibo.tipoPago || 'Efectivo';
+    const porcentajeImpuesto = this.impuestosPago[tipoPago as keyof typeof this.impuestosPago] || 0;
+
+    // Calcular impuesto
+    const impuesto = this.recibo.costoBase * porcentajeImpuesto;
+    this.recibo.impuesto = Math.round(impuesto * 100) / 100;
+
+    // Calcular total
+    this.recibo.total = this.recibo.costoBase + this.recibo.impuesto;
+    this.recibo.costo = this.recibo.total; // Para compatibilidad con el resto del código
   }
 
   // NUEVO: Métodos para el autocomplete de servicios
@@ -468,8 +519,8 @@ export class ReciboComponent {
     if (esSellos && (!this.recibo.precioSello || this.recibo.precioSello <= 0)) {
       this.errores['precioSello'] = 'Seleccione un precio de sello';
     }
-    if (!this.recibo.costo || this.recibo.costo <= 0) {
-      this.errores['costo'] = 'El costo debe ser mayor a 0';
+    if (!this.recibo.total || this.recibo.total <= 0) {
+      this.errores['total'] = 'El total debe ser mayor a 0';
     }
     // NUEVA VALIDACIÓN: Tipo de pago
     if (!this.recibo.tipoPago || this.recibo.tipoPago.trim() === '') {
@@ -523,8 +574,21 @@ export class ReciboComponent {
       ...this.recibo,
       numero: this.numeroRecibo,
       fechaPago: this.recibo.fecha || new Date().toISOString().split('T')[0],
-      total: this.recibo.costo || 0,
+      total: this.recibo.total || 0,
     };
+
+    // Guardar el recibo en sessionStorage para que pueda ser descargado desde el QR
+    sessionStorage.setItem(`recibo_${this.numeroRecibo}`, JSON.stringify(this.reciboGenerado));
+
+    // Guardar el recibo en el servidor para que se pueda descargar desde cualquier dispositivo
+    this.http.post(this.apiUrlRecibos, this.reciboGenerado).subscribe({
+      next: (response: any) => {
+        console.log('Recibo guardado en servidor:', response);
+      },
+      error: (error) => {
+        console.error('Error guardando recibo en servidor:', error);
+      }
+    });
 
     // Generar código QR localmente en Data URL
     this.generarQrCodeDataUrl(this.reciboGenerado).then((url) => {
@@ -706,32 +770,11 @@ export class ReciboComponent {
   }
 
   private generarQrCodeDataUrl(recibo: any): Promise<string> {
-    const lines = [
-      'CORREOS DE HONDURAS - RECIBO DE PAGO',
-      `Recibo Nº: ${recibo.numero}`,
-      `Oficina/Agencia: ${recibo.oficina || ''}`,
-      `Fecha de Pago: ${recibo.fechaPago}`,
-      '',
-      'REMITENTE',
-      `Nombre: ${recibo.remitente?.nombre || ''}`,
-      `Dirección: ${recibo.remitente?.direccion || ''}`,
-      `País: ${recibo.remitente?.pais || ''}`,
-      '',
-      'DESTINATARIO',
-      `Nombre: ${recibo.destinatario?.nombre || ''}`,
-      `Dirección: ${recibo.destinatario?.direccion || ''}`,
-      `País: ${recibo.destinatario?.pais || ''}`,
-      '',
-      `Tipo de Servicio: ${recibo.tipoServicio || ''}`,
-      `Tipo de Pago: ${recibo.tipoPago || ''}`,
-      `Concepto: ${recibo.concepto || ''}`,
-      '',
-      `TOTAL A PAGAR: L. ${(recibo.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    ];
+    // Generar URL que apunta al servidor para descargar el PDF
+    // Cuando se escanee el QR desde otro dispositivo, descargará el PDF directamente
+    const urlDescarga = `http://localhost:3000/api/recibos/${recibo.numero}/pdf`;
 
-    const texto = lines.join('\n');
-
-    return QRCode.toDataURL(texto, {
+    return QRCode.toDataURL(urlDescarga, {
       width: 200,
       margin: 1,
       color: {
@@ -762,6 +805,9 @@ export class ReciboComponent {
       },
       concepto: '',
       peso: null,
+      costoBase: null,
+      impuesto: 0,
+      total: null,
       costo: null,
       tipoServicio: '',
       tipoServicioSello: '',
@@ -800,6 +846,9 @@ export class ReciboComponent {
       },
       concepto: '',
       peso: null,
+      costoBase: null,
+      impuesto: 0,
+      total: null,
       costo: null,
       tipoServicio: '',
       tipoServicioSello: '',

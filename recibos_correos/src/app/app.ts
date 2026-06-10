@@ -61,7 +61,7 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    // Si el usuario ya está autenticado, permitir navegación normal.
+    // Si el usuario ya está autenticado, permitir navegación normal.k
   }
 
   mostrarAlertaAccesoRequerido() {

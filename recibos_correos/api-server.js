@@ -3,10 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const mysql = require('mysql2/promise');
+const PDFDocument = require('pdfkit');
 
 const app = express();
 const port = process.env.PORT || 3000;
 const dataFile = path.join(__dirname, 'api-data.json');
+
+// Almacén en memoria para recibos (se limpia cada vez que reinicia el servidor)
+const recibosGuardados = {};
 
 // Configuración de MySQL
 const pool = mysql.createPool({
@@ -314,6 +318,89 @@ app.delete('/api/auth/usuarios/:id', async (req, res) => {
     console.error('Error eliminando usuario:', error);
     res.status(500).json({ error: 'Error: ' + error.message });
   }
+});
+
+// ==================== ENDPOINTS PARA RECIBOS ====================
+
+// Guardar recibo en memoria
+app.post('/api/recibos', (req, res) => {
+  const recibo = req.body;
+  
+  if (!recibo || !recibo.numero) {
+    return res.status(400).json({ error: 'Recibo inválido' });
+  }
+
+  // Guardar en memoria
+  recibosGuardados[recibo.numero] = recibo;
+  
+  res.json({ 
+    message: 'Recibo guardado',
+    urlDescarga: `http://localhost:${port}/api/recibos/${recibo.numero}/pdf`
+  });
+});
+
+// Descargar recibo en PDF
+app.get('/api/recibos/:numero/pdf', (req, res) => {
+  const { numero } = req.params;
+  
+  const recibo = recibosGuardados[numero];
+  if (!recibo) {
+    return res.status(404).json({ error: 'Recibo no encontrado' });
+  }
+
+  const doc = new PDFDocument();
+  
+  // Configurar headers para descarga
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="Recibo_${numero}.pdf"`);
+  
+  // Pipe al response
+  doc.pipe(res);
+  
+  // Crear contenido del PDF
+  doc.fontSize(20).text('CORREOS DE HONDURAS', { align: 'center' });
+  doc.fontSize(12).text('RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"', { align: 'center' });
+  doc.moveDown(0.5);
+  
+  doc.fontSize(14).text(`RECIBO Nº ${recibo.numero}`, { align: 'center', underline: true });
+  doc.moveDown(1);
+  
+  // Tabla de datos
+  doc.fontSize(10);
+  doc.text(`Oficina/Agencia: ${recibo.oficina || 'No especificada'}`);
+  doc.text(`Fecha de Pago: ${recibo.fechaPago}`);
+  doc.text(`Tipo de Servicio: ${recibo.tipoServicio || 'No especificado'}`);
+  doc.text(`Tipo de Pago: ${recibo.tipoPago || 'No especificado'}`);
+  doc.text(`Concepto: ${recibo.concepto || 'No especificado'}`);
+  doc.text(`Peso: ${recibo.peso || '0'} g`);
+  doc.moveDown(1);
+  
+  // Remitente
+  doc.fontSize(11).text('REMITENTE:', { underline: true });
+  doc.fontSize(10);
+  doc.text(`Nombre: ${recibo.remitente?.nombre || 'No especificado'}`);
+  doc.text(`Dirección: ${recibo.remitente?.direccion || 'No especificada'}`);
+  doc.text(`País: ${recibo.remitente?.pais || 'No especificado'}`);
+  doc.moveDown(0.5);
+  
+  // Destinatario
+  doc.fontSize(11).text('DESTINATARIO:', { underline: true });
+  doc.fontSize(10);
+  doc.text(`Nombre: ${recibo.destinatario?.nombre || 'No especificado'}`);
+  doc.text(`Dirección: ${recibo.destinatario?.direccion || 'No especificada'}`);
+  doc.text(`País: ${recibo.destinatario?.pais || 'No especificado'}`);
+  doc.moveDown(1);
+  
+  // Total
+  doc.fontSize(14).text('TOTAL A PAGAR', { align: 'center', underline: true });
+  const total = (recibo.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  doc.fontSize(16).text(`L. ${total}`, { align: 'center', bold: true });
+  doc.moveDown(2);
+  
+  doc.fontSize(9).text('Documento generado automáticamente por el Sistema de Recibos', { align: 'center' });
+  doc.fontSize(9).text('Correos de Honduras - Todos los derechos reservados', { align: 'center' });
+  
+  doc.end();
 });
 
 app.listen(port, () => {
