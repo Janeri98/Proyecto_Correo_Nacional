@@ -130,6 +130,11 @@
   transform: translateY(-2px);
 }
 
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85em;
+}
+
 /* Sección de Estadísticas */
 .estadisticas-section {
   display: grid;

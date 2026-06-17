@@ -153,7 +153,7 @@ export class ReciboComponent {
   ];
 
   // URLs de la API
-  apiUrlRecibos = 'http://localhost:3000/api/recibos';
+  apiUrlRecibos = `http://${window.location.hostname}:3000/api/recibos`;
 
   constructor(private recibosStorage: RecibosStorageService, private authService: AuthService, private http: HttpClient) {
     // NUEVO: Inicializar fecha a hoy únicamente
@@ -772,7 +772,7 @@ export class ReciboComponent {
   private generarQrCodeDataUrl(recibo: any): Promise<string> {
     // Generar URL que apunta al servidor para descargar el PDF
     // Cuando se escanee el QR desde otro dispositivo, descargará el PDF directamente
-    const urlDescarga = `http://localhost:3000/api/recibos/${recibo.numero}/pdf`;
+    const urlDescarga = `http://${window.location.hostname}:3000/api/recibos/${recibo.numero}/pdf`;
 
     return QRCode.toDataURL(urlDescarga, {
       width: 200,

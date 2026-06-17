@@ -4,6 +4,155 @@
     <p>Administrador: asigna roles a los usuarios como Administrador, Supervisor o Ventanilla.</p>
   </div>
 
+  <!-- Botón para crear nuevo usuario -->
+  <div class="usuarios-actions">
+    <button class="btn btn-success btn-lg" (click)="abrirModalCrear()">+ Crear Nueva Cuenta</button>
+  </div>
+
+  <!-- Modal para crear nuevo usuario -->
+  <div *ngIf="mostrarModalCrear" class="modal-overlay" (click)="cerrarModalCrear()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Crear Nueva Cuenta</h2>
+        <button type="button" class="btn-close" (click)="cerrarModalCrear()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form>
+          <!-- Nombre Completo -->
+          <div class="form-group">
+            <label for="nombre">Nombre Completo*</label>
+            <input
+              type="text"
+              id="nombre"
+              [(ngModel)]="nuevoUsuario.nombre"
+              name="nombre"
+              class="form-control"
+              placeholder="Ingrese nombre completo"
+            />
+          </div>
+
+          <!-- Correo Electrónico -->
+          <div class="form-group">
+            <label for="correo">Correo Electrónico*</label>
+            <input
+              type="email"
+              id="correo"
+              [(ngModel)]="nuevoUsuario.correo"
+              name="correo"
+              class="form-control"
+              placeholder="Ingrese correo electrónico"
+            />
+          </div>
+
+          <!-- Dirección -->
+          <div class="form-group">
+            <label for="direccion">Dirección*</label>
+            <input
+              type="text"
+              id="direccion"
+              [(ngModel)]="nuevoUsuario.direccion"
+              name="direccion"
+              class="form-control"
+              placeholder="Ingrese dirección"
+            />
+          </div>
+
+          <!-- Número de Teléfono -->
+          <div class="form-group">
+            <label for="telefono">Número de Teléfono*</label>
+            <input
+              type="tel"
+              id="telefono"
+              [(ngModel)]="nuevoUsuario.telefono"
+              name="telefono"
+              class="form-control"
+              placeholder="Ingrese número de teléfono"
+            />
+          </div>
+
+          <!-- Rol de Usuario -->
+          <div class="form-group">
+            <label for="rol">Rol de Usuario*</label>
+            <select
+              id="rol"
+              [(ngModel)]="nuevoUsuario.rol"
+              name="rol"
+              class="form-control"
+            >
+              <option value="">Seleccione un rol...</option>
+              <option value="Superadministrador">Superadministrador</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Supervisor">Supervisor</option>
+              <option value="Ventanilla">Ventanilla</option>
+            </select>
+          </div>
+
+          <!-- Departamento -->
+          <div class="form-group">
+            <label for="departamento">Departamento*</label>
+            <select
+              id="departamento"
+              [(ngModel)]="nuevoUsuario.departamento"
+              (ngModelChange)="actualizarMunicipios()"
+              name="departamento"
+              class="form-control"
+            >
+              <option value="">Seleccione departamento...</option>
+              <option *ngFor="let dept of departamentos" [value]="dept">{{ dept }}</option>
+            </select>
+          </div>
+
+          <!-- Municipio -->
+          <div class="form-group">
+            <label for="municipio">Municipio según departamento*</label>
+            <select
+              id="municipio"
+              [(ngModel)]="nuevoUsuario.municipio"
+              name="municipio"
+              class="form-control"
+              [disabled]="municipiosDisponibles.length === 0"
+            >
+              <option value="">Seleccione municipio...</option>
+              <option *ngFor="let mun of municipiosDisponibles" [value]="mun">{{ mun }}</option>
+            </select>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="form-group">
+            <label for="contrasena">Contraseña*</label>
+            <input
+              type="password"
+              id="contrasena"
+              [(ngModel)]="nuevoUsuario.contrasena"
+              name="contrasena"
+              class="form-control"
+              placeholder="Ingrese contraseña"
+            />
+          </div>
+
+          <!-- Confirmar Contraseña -->
+          <div class="form-group">
+            <label for="confirmarContrasena">Confirmar Contraseña*</label>
+            <input
+              type="password"
+              id="confirmarContrasena"
+              [(ngModel)]="nuevoUsuario.confirmarContrasena"
+              name="confirmarContrasena"
+              class="form-control"
+              placeholder="Confirme contraseña"
+            />
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalCrear()">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="crearNuevoUsuario()">Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+
   <div class="usuarios-search-bar">
     <input
       type="text"

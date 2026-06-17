@@ -105,6 +105,7 @@
             <th>Tipo Servicio</th>
             <th *ngIf="!esVentanilla">Oficina</th>
             <th *ngIf="!esVentanilla">Departamento</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -118,6 +119,9 @@
             <td>{{ recibo.tipoServicio || 'N/A' }}</td>
             <td *ngIf="!esVentanilla">{{ recibo.oficina || 'N/A' }}</td>
             <td *ngIf="!esVentanilla">{{ recibo.departamento || 'N/A' }}</td>
+            <td>
+              <button class="btn btn-sm btn-success" (click)="descargarRecibo(recibo)" title="Descargar PDF">📥 Descargar</button>
+            </td>
           </tr>
         </tbody>
       </table>

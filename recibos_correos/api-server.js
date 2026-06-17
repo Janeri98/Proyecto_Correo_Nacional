@@ -321,7 +321,6 @@ app.delete('/api/auth/usuarios/:id', async (req, res) => {
 });
 
 // ==================== ENDPOINTS PARA RECIBOS ====================
-
 // Guardar recibo en memoria
 app.post('/api/recibos', (req, res) => {
   const recibo = req.body;
@@ -348,7 +347,7 @@ app.get('/api/recibos/:numero/pdf', (req, res) => {
     return res.status(404).json({ error: 'Recibo no encontrado' });
   }
 
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({ margin: 30, size: 'A4' });
   
   // Configurar headers para descarga
   res.setHeader('Content-Type', 'application/pdf');
@@ -357,48 +356,104 @@ app.get('/api/recibos/:numero/pdf', (req, res) => {
   // Pipe al response
   doc.pipe(res);
   
-  // Crear contenido del PDF
-  doc.fontSize(20).text('CORREOS DE HONDURAS', { align: 'center' });
-  doc.fontSize(12).text('RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"', { align: 'center' });
-  doc.moveDown(0.5);
+  // ===== HEADER AZUL =====
+  doc.rect(0, 0, doc.page.width, 80).fill('#1e5a96');
   
-  doc.fontSize(14).text(`RECIBO Nº ${recibo.numero}`, { align: 'center', underline: true });
-  doc.moveDown(1);
+  // Texto en header blanco
+  doc.fillColor('white');
+  doc.fontSize(20).font('Helvetica-Bold').text('CORREOS DE HONDURAS', 40, 20);
+  doc.fontSize(10).font('Helvetica').text('RECIBO DE PAGO - INGRESOS CORRIENTES "TESORERÍA"', 40, 45);
   
-  // Tabla de datos
-  doc.fontSize(10);
-  doc.text(`Oficina/Agencia: ${recibo.oficina || 'No especificada'}`);
-  doc.text(`Fecha de Pago: ${recibo.fechaPago}`);
-  doc.text(`Tipo de Servicio: ${recibo.tipoServicio || 'No especificado'}`);
-  doc.text(`Tipo de Pago: ${recibo.tipoPago || 'No especificado'}`);
-  doc.text(`Concepto: ${recibo.concepto || 'No especificado'}`);
-  doc.text(`Peso: ${recibo.peso || '0'} g`);
-  doc.moveDown(1);
+  // Volver a color negro
+  doc.fillColor('black');
+  doc.y = 90;
   
-  // Remitente
-  doc.fontSize(11).text('REMITENTE:', { underline: true });
-  doc.fontSize(10);
-  doc.text(`Nombre: ${recibo.remitente?.nombre || 'No especificado'}`);
-  doc.text(`Dirección: ${recibo.remitente?.direccion || 'No especificada'}`);
-  doc.text(`País: ${recibo.remitente?.pais || 'No especificado'}`);
-  doc.moveDown(0.5);
+  // ===== NÚMERO DE RECIBO =====
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('RECIBO Nº');
+  doc.fontSize(18).font('Helvetica-Bold').fillColor('#1e5a96').text(recibo.numero);
   
-  // Destinatario
-  doc.fontSize(11).text('DESTINATARIO:', { underline: true });
-  doc.fontSize(10);
-  doc.text(`Nombre: ${recibo.destinatario?.nombre || 'No especificado'}`);
-  doc.text(`Dirección: ${recibo.destinatario?.direccion || 'No especificada'}`);
-  doc.text(`País: ${recibo.destinatario?.pais || 'No especificado'}`);
-  doc.moveDown(1);
+  doc.y = 120;
   
-  // Total
-  doc.fontSize(14).text('TOTAL A PAGAR', { align: 'center', underline: true });
+  // ===== INFORMACIÓN EN DOS COLUMNAS =====
+  const col1X = 40;
+  const col2X = 310;
+  const lineHeight = 20;
+  let currentY = doc.y;
+  
+  // Fila 1: Oficina/Agencia y Fecha
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('Oficina/Agencia:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').fillColor('black').text(recibo.oficina || 'INT', col1X + 100, currentY);
+  
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('Fecha de Pago:', col2X, currentY);
+  doc.fontSize(10).font('Helvetica').fillColor('black').text(recibo.fechaPago || '', col2X + 100, currentY);
+  
+  // Fila 2: Tipo de Servicio
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('Tipo de Servicio:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').fillColor('black').text(recibo.tipoServicio || 'No especificado', col1X + 100, currentY);
+  
+  // Fila 3: Tipo de Pago
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('Tipo de Pago:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').fillColor('black').text(recibo.tipoPago || 'No especificado', col1X + 100, currentY);
+  
+  // Fila 4: Peso
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('#1e5a96').text('Peso:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').fillColor('black').text((recibo.peso || '0') + ' g', col1X + 100, currentY);
+  
+  doc.y = currentY + 35;
+  
+  // ===== REMITENTE =====
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e5a96').text('REMITENTE');
+  doc.moveTo(40, doc.y + 2).lineTo(560, doc.y + 2).stroke('#cccccc');
+  
+  currentY = doc.y + 10;
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('black').text('Nombre:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.remitente?.nombre || 'No especificado', col1X + 100, currentY);
+  
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').text('Dirección:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.remitente?.direccion || 'No especificada', col1X + 100, currentY);
+  
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').text('País:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.remitente?.pais || 'No especificado', col1X + 100, currentY);
+  
+  doc.y = currentY + 25;
+  
+  // ===== DESTINATARIO =====
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e5a96').text('DESTINATARIO');
+  doc.moveTo(40, doc.y + 2).lineTo(560, doc.y + 2).stroke('#cccccc');
+  
+  currentY = doc.y + 10;
+  doc.fontSize(9).font('Helvetica-Bold').fillColor('black').text('Nombre:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.destinatario?.nombre || 'No especificado', col1X + 100, currentY);
+  
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').text('Dirección:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.destinatario?.direccion || 'No especificada', col1X + 100, currentY);
+  
+  currentY += lineHeight;
+  doc.fontSize(9).font('Helvetica-Bold').text('País:', col1X, currentY);
+  doc.fontSize(10).font('Helvetica').text(recibo.destinatario?.pais || 'No especificado', col1X + 100, currentY);
+  
+  doc.y = currentY + 35;
+  
+  // ===== TOTAL A PAGAR =====
+  doc.rect(40, doc.y, 520, 70).fill('#f5f5f5');
+  
+  const totalY = doc.y + 10;
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e5a96').text('TOTAL A PAGAR', 60, totalY);
+  
   const total = (recibo.total || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  doc.fontSize(16).text(`L. ${total}`, { align: 'center', bold: true });
-  doc.moveDown(2);
+  doc.fontSize(28).font('Helvetica-Bold').fillColor('#1e5a96').text(`L. ${total}`, 60, totalY + 25);
   
-  doc.fontSize(9).text('Documento generado automáticamente por el Sistema de Recibos', { align: 'center' });
-  doc.fontSize(9).text('Correos de Honduras - Todos los derechos reservados', { align: 'center' });
+  doc.y += 90;
+  
+  // ===== FOOTER =====
+  doc.fontSize(8).font('Helvetica').fillColor('#666666').text('Documento generado automáticamente por el Sistema de Recibos', { align: 'center' });
+  doc.fontSize(8).text('Correos de Honduras - Todos los derechos reservados', { align: 'center' });
   
   doc.end();
 });

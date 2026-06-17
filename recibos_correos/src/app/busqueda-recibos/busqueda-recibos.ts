@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { RecibosStorageService, Recibo } from '../services/recibos-storage.service';
 import { AuthService } from '../services/auth.service';
 
@@ -39,7 +40,8 @@ export class BusquedaRecibosComponent implements OnInit {
 
   constructor(
     private recibosStorageService: RecibosStorageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -162,6 +164,36 @@ export class BusquedaRecibosComponent implements OnInit {
 
   toggleEstadisticas() {
     this.mostrarEstadisticas = !this.mostrarEstadisticas;
+  }
+
+  descargarRecibo(recibo: Recibo) {
+    const apiUrlRecibos = `http://${window.location.hostname}:3000/api/recibos`;
+    const urlDescarga = `http://${window.location.hostname}:3000/api/recibos/${recibo.numero}/pdf`;
+    
+    // Primero guardar el recibo en el servidor
+    this.http.post(apiUrlRecibos, recibo).subscribe({
+      next: () => {
+        // Luego descargar el PDF
+        this.http.get(urlDescarga, { responseType: 'blob' }).subscribe({
+          next: (blob) => {
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `recibo-${recibo.numero}.pdf`;
+            link.click();
+            URL.revokeObjectURL(url);
+          },
+          error: (err) => {
+            console.error('Error descargando PDF:', err);
+            alert('Error al descargar el recibo. Intenta nuevamente.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error guardando recibo:', err);
+        alert('Error al guardar el recibo. Intenta nuevamente.');
+      }
+    });
   }
 }
 
