@@ -12,6 +12,8 @@ interface UsuarioListado {
   departamento: string;
   municipio: string;
   createdAt: string;
+  recibosGenerados?: number;
+  suspendido?: boolean;
 }
 
 interface NuevoUsuario {
@@ -42,8 +44,7 @@ export class UsuariosComponent implements OnInit {
   roles: string[] = ['Administrador', 'Supervisor', 'Ventanilla'];
   apiUrl = `http://${window.location.hostname}:3000/api/auth`;
 
-  // Modal crear usuario
-  mostrarModalCrear: boolean = false;
+  // Crear usuario
   nuevoUsuario: NuevoUsuario = {
     nombre: '',
     correo: '',
@@ -123,7 +124,7 @@ export class UsuariosComponent implements OnInit {
       next: (usuarios) => {
         console.log('[Usuarios] Respuesta recibida, usuarios:', usuarios.length);
         clearTimeout(timeout);
-        this.usuarios = usuarios || [];
+        this.usuarios = (usuarios || []).sort((a, b) => a.nombre.localeCompare(b.nombre));
         this.usuariosFiltrados = this.usuarios;
         this.cargando = false;
       },
@@ -184,6 +185,40 @@ export class UsuariosComponent implements OnInit {
     this.actualizarRol(usuario);
   }
 
+  suspenderUsuario(usuario: UsuarioListado): void {
+    const confirmacion = confirm(`¿Estás seguro de suspender a ${usuario.nombre}? No podrá acceder a la plataforma.`);
+    if (!confirmacion) {
+      return;
+    }
+
+    this.http.patch(`${this.apiUrl}/usuarios/${usuario.id}/suspender`, { suspendido: true }).subscribe({
+      next: () => {
+        usuario.suspendido = true;
+        alert(`Usuario ${usuario.nombre} suspendido.`);
+      },
+      error: (error) => {
+        alert(error.error?.error || 'No se pudo suspender el usuario.');
+      }
+    });
+  }
+
+  reactivarUsuario(usuario: UsuarioListado): void {
+    const confirmacion = confirm(`¿Estás seguro de reactivar a ${usuario.nombre}?`);
+    if (!confirmacion) {
+      return;
+    }
+
+    this.http.patch(`${this.apiUrl}/usuarios/${usuario.id}/suspender`, { suspendido: false }).subscribe({
+      next: () => {
+        usuario.suspendido = false;
+        alert(`Usuario ${usuario.nombre} reactivado.`);
+      },
+      error: (error) => {
+        alert(error.error?.error || 'No se pudo reactivar el usuario.');
+      }
+    });
+  }
+
   buscarUsuarios(): void {
     const termino = this.searchTerm.trim().toLowerCase();
     if (!termino) {
@@ -202,17 +237,7 @@ export class UsuariosComponent implements OnInit {
   }
 
   // ===== MÉTODOS PARA CREAR NUEVO USUARIO =====
-  abrirModalCrear(): void {
-    this.mostrarModalCrear = true;
-    this.reiniciarFormulario();
-  }
-
-  cerrarModalCrear(): void {
-    this.mostrarModalCrear = false;
-    this.reiniciarFormulario();
-  }
-
-  reiniciarFormulario(): void {
+  limpiarFormulario(): void {
     this.nuevoUsuario = {
       nombre: '',
       correo: '',
@@ -288,7 +313,7 @@ export class UsuariosComponent implements OnInit {
     this.http.post(`${this.apiUrl}/registro`, datosUsuario).subscribe({
       next: (response: any) => {
         alert('Usuario creado exitosamente.');
-        this.cerrarModalCrear();
+        this.limpiarFormulario();
         this.cargarUsuarios();
       },
       error: (error) => {

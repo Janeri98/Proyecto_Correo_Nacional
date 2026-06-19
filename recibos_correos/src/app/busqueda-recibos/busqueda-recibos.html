@@ -50,6 +50,16 @@
         <label for="fechaFin">Fecha Fin (Rango):</label>
         <input type="date" id="fechaFin" [(ngModel)]="filtro.fechaFin">
       </div>
+
+      <div class="filtro-group">
+        <label for="departamento">Departamento:</label>
+        <input type="text" id="departamento" [(ngModel)]="filtro.departamento" placeholder="Ej: Francisco Morazán">
+      </div>
+
+      <div class="filtro-group">
+        <label for="oficina">Oficina:</label>
+        <input type="text" id="oficina" [(ngModel)]="filtro.oficina" placeholder="Ej: Tegucigalpa">
+      </div>
     </div>
 
     <div class="filtros-buttons">

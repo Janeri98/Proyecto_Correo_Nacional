@@ -23,7 +23,9 @@ export class BusquedaRecibosComponent implements OnInit {
     destinatario: '',
     fechaInicio: '',
     fechaFin: '',
-    tipoServicio: ''
+    tipoServicio: '',
+    departamento: '',
+    oficina: ''
   };
 
   estadisticas = {
@@ -98,7 +100,17 @@ export class BusquedaRecibosComponent implements OnInit {
         cumpleRangoFechas = fechaRecibo >= inicio && fechaRecibo <= fin;
       }
 
-      return cumpleNumero && cumpleFecha && cumpleDestinatario && cumpleTipo && cumpleRangoFechas;
+      const cumpleDepartamento = !this.filtro.departamento || 
+        ((recibo.departamento && typeof recibo.departamento === 'string') ? 
+          recibo.departamento.toLowerCase().includes(this.filtro.departamento.toLowerCase()) : 
+          false);
+
+      const cumpleOficina = !this.filtro.oficina || 
+        ((recibo.oficina && typeof recibo.oficina === 'string') ? 
+          recibo.oficina.toLowerCase().includes(this.filtro.oficina.toLowerCase()) : 
+          false);
+
+      return cumpleNumero && cumpleFecha && cumpleDestinatario && cumpleTipo && cumpleRangoFechas && cumpleDepartamento && cumpleOficina;
     });
 
     console.log('Resultados encontrados:', this.recibosFiltered.length);
@@ -135,7 +147,9 @@ export class BusquedaRecibosComponent implements OnInit {
       destinatario: '',
       fechaInicio: '',
       fechaFin: '',
-      tipoServicio: ''
+      tipoServicio: '',
+      departamento: '',
+      oficina: ''
     };
     this.recibosFiltered = [...this.recibos];
     this.calcularEstadisticas();
