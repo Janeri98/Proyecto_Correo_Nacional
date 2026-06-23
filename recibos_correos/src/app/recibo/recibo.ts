@@ -603,7 +603,88 @@ export class ReciboComponent {
   }
 
   imprimir() {
-    window.print();
+    if (!this.reciboGenerado) {
+      alert('Primero debe generar un recibo');
+      return;
+    }
+
+    const elemento = document.getElementById('recibo-pdf-content');
+    if (!elemento) {
+      alert('No se encontró el elemento del recibo');
+      return;
+    }
+
+    elemento.classList.add('pdf-ticket');
+
+    // Ocultar los botones temporalmente
+    const elementosNoPrint = elemento.querySelectorAll<HTMLElement>('.no-print');
+    const displayOriginales: string[] = [];
+    elementosNoPrint.forEach((boton) => {
+      displayOriginales.push(boton.style.display || '');
+      boton.style.display = 'none';
+    });
+
+    html2canvas(elemento, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    }).then((canvas) => {
+      // Restaurar los botones
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });
+      elemento.classList.remove('pdf-ticket');
+
+      // Crear una ventana nueva con el contenido para imprimir
+      const imgData = canvas.toDataURL('image/png');
+      const ventanaImpresion = window.open('', '', 'height=800,width=900');
+      
+      if (ventanaImpresion) {
+        ventanaImpresion.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Imprimir Recibo ${this.reciboGenerado.numero}</title>
+            <style>
+              body {
+                margin: 0;
+                padding: 10px;
+                font-family: Arial, sans-serif;
+              }
+              img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+              }
+              @media print {
+                body {
+                  margin: 0;
+                  padding: 0;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${imgData}" style="width: 100%; height: auto;" />
+          </body>
+          </html>
+        `);
+        ventanaImpresion.document.close();
+        
+        // Esperar a que la imagen se cargue y luego mostrar el diálogo de impresión
+        setTimeout(() => {
+          ventanaImpresion.print();
+        }, 500);
+      }
+    }).catch(() => {
+      // En caso de error, restaurar los botones
+      elementosNoPrint.forEach((boton, index) => {
+        boton.style.display = displayOriginales[index] || '';
+      });
+      elemento.classList.remove('pdf-ticket');
+      alert('Error al procesar el recibo para impresión');
+    });
   }
 
   enviarPorWhatsApp() {
