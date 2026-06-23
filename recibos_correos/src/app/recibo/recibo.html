@@ -168,8 +168,8 @@
 
       <!-- FILA 4: Precio de Sello (Condicional) -->
       <div class="form-row"
-        *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105') || recibo.tipoServicioSello || recibo.tipoServicio.includes('45211')">
-        <div class="form-group" *ngIf="!recibo.tipoServicio.includes('45211')">
+        *ngIf="recibo.tipoServicio.includes('44105') || recibo.tipoServicio.includes('45105') || recibo.tipoServicioSello">
+        <div class="form-group">
           <label>Precio del Sello (L.) <span class="required">*</span></label>
           <select class="form-control" [ngClass]="{'error': errores['precioSello']}" [(ngModel)]="recibo.precioSello"
             (change)="calcularCosto()" name="precioSello">

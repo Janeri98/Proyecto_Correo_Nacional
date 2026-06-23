@@ -127,7 +127,7 @@
 
 .usuarios-table th,
 .usuarios-table td {
-  padding: 4px 6px;
+  padding: 6px 8px;
   border-bottom: 1px solid #e3e8ee;
   text-align: left;
   vertical-align: middle;
@@ -160,9 +160,9 @@
 /* ===== BOTONES ===== */
 .btn {
   border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
   cursor: pointer;
@@ -284,7 +284,7 @@
 /* ===== CELDAS DE ACCIONES ===== */
 .acciones-cell {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
