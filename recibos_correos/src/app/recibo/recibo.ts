@@ -92,11 +92,12 @@ export class ReciboComponent {
   ];
 
   // NUEVO: Tipos de pago agrupados por categoría
+  // NUEVO: Tipos de pago agrupados por categoría
   tiposPago = [
     { categoria: 'Efectivo', opciones: ['Efectivo'] },
     { categoria: 'Tarjetas', opciones: ['Tarjeta Crédito', 'Tarjeta Débito'] },
     { categoria: 'Transferencia', opciones: ['Transferencia Bancaria', 'Depósito Bancario'] },
-    { categoria: 'Otros', opciones: ['Cheque', 'Billetera Digital', 'Mixto'] }
+    { categoria: 'Otros', opciones: ['Cheque', 'POS', 'SIAFI', 'Billetera Digital', 'Mixto'] }
   ];
 
   // Impuestos por tipo de pago en Honduras
@@ -105,10 +106,12 @@ export class ReciboComponent {
   impuestosPago = {
     'Efectivo': 0,           // Sin impuesto
     'Tarjeta Crédito': 0.03, // 3% ITF (cambiar a 0.05 si es 5% en tu banco)
-    'Tarjeta Débito': 0.02,  // 2% (verificar con tu banco)
+    'Tarjeta Débito': 0.03,  // 2% (verificar con tu banco)
     'Transferencia Bancaria': 0,     // Sin impuesto directo
     'Depósito Bancario': 0,          // Sin impuesto directo
     'Cheque': 0,             // Sin impuesto
+    'POS': 0,                // Sin impuesto
+    'SIAFI': 0,              // Sin impuesto
     'Billetera Digital': 0.02, // 2% (según el servicio)
     'Mixto': 0.015           // 1.5% promedio
   };
@@ -425,6 +428,11 @@ export class ReciboComponent {
 
     if (servicio.includes('44113') || servicio.includes('44114')) {
       this.recibo.tipoServicioSello = '44105 - Sellos Postales';
+    }
+
+    // Agregar cantidad para Apartado Postal
+    if (servicio.includes('45211')) {
+      this.recibo.cantidadSellos = 1;
     }
 
     this.busquedaServicio = '';
