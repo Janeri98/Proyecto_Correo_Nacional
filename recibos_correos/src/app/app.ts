@@ -49,7 +49,7 @@ export class AppComponent implements OnInit {
   departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
   municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
   
-  apiUrl = 'http://localhost:3000/api/auth';
+  apiUrl = '/api/auth';
 
   constructor(private router: Router, private authService: AuthService, private http: HttpClient) {}
 

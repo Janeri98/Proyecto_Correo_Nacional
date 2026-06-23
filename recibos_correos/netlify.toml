@@ -1,0 +1,18 @@
+[build]
+  command = "npm install && ng build --configuration production"
+  functions = "netlify/functions"
+  publish = "dist/recibos_correos/browser"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["api-data.json"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

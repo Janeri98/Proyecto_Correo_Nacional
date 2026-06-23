@@ -42,7 +42,7 @@ export class UsuariosComponent implements OnInit {
   error: string = '';
   cargando: boolean = false;
   roles: string[] = ['Administrador', 'Supervisor', 'Ventanilla'];
-  apiUrl = `http://${window.location.hostname}:3000/api/auth`;
+  apiUrl = '/api/auth';
 
   // Crear usuario
   nuevoUsuario: NuevoUsuario = {
