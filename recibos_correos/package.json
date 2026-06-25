@@ -25,6 +25,7 @@
     "body-parser": "^2.2.2",
     "bootstrap": "^5.3.8",
     "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
