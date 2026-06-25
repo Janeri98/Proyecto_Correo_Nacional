@@ -186,6 +186,16 @@
         </div>
       </div>
 
+      <div class="form-row"
+        *ngIf="recibo.tipoServicio.includes('EMS') || recibo.tipoServicio.includes('Apartado Postal')">
+        <div class="form-group">
+          <label>Cantidad de Servicio <span class="required">*</span></label>
+          <input type="number" class="form-control" [(ngModel)]="recibo.cantidadServicio"
+            (change)="calcularCosto()" [min]="1" placeholder="1" name="cantidadServicio" />
+          <span class="error-message" *ngIf="errores['cantidadServicio']">{{ errores['cantidadServicio'] }}</span>
+        </div>
+      </div>
+
       <!-- FILA 5: Observaciones, Peso y Grupo -->
       <div class="form-row">
         <div class="form-group">

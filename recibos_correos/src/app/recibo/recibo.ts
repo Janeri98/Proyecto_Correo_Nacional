@@ -45,6 +45,7 @@ export class ReciboComponent {
     grupo: 'grupo1',
     precioSello: null as number | null,
     cantidadSellos: 1,
+    cantidadServicio: 1,
     departamento: '',
     municipio: '',
     costoBase: null as number | null,
@@ -63,6 +64,8 @@ export class ReciboComponent {
 
   servicios = [
     '45211 - Apartado Postal',
+    'EMS Nacional',
+    'EMS Internacional',
     '44105 - Sellos Postales',
     '45105 - Sellos Filatelicos',
     '21102 - Depósito Cta.Corriente(Filatelistas)',
@@ -94,8 +97,8 @@ export class ReciboComponent {
   // NUEVO: Tipos de pago agrupados por categoría
   tiposPago = [
     { categoria: 'Efectivo', opciones: ['Efectivo'] },
-    { categoria: 'Tarjetas', opciones: ['Tarjeta Crédito', 'Tarjeta Débito'] },
-    { categoria: 'Transferencia', opciones: ['Transferencia Bancaria', 'Depósito Bancario'] },
+    { categoria: 'Tarjetas', opciones: ['Tarjeta Crédito', 'Tarjeta Débito', 'POS'] },
+    { categoria: 'Transferencia', opciones: ['Transferencia Bancaria', 'Depósito Bancario', 'SIAFI'] },
     { categoria: 'Otros', opciones: ['Cheque', 'Billetera Digital', 'Mixto'] }
   ];
 
@@ -262,6 +265,12 @@ export class ReciboComponent {
     if (!esSellos) {
       this.recibo.precioSello = null;
     }
+
+    // Reiniciar cantidad de servicio para las opciones sin cantidad específica
+    if (!this.recibo.tipoServicio.includes('EMS') && !this.recibo.tipoServicio.includes('Apartado Postal')) {
+      this.recibo.cantidadServicio = 1;
+    }
+
     this.calcularCosto();
   }
 
@@ -381,7 +390,9 @@ export class ReciboComponent {
       // Sumar cargo por certificado y asignar costo final
       const costoFinal = costoBase + cargoCertificado;
       if (costoFinal > 0) {
-        this.recibo.costoBase = costoFinal;
+        const esCantidadServicio = this.recibo.tipoServicio.includes('EMS') || this.recibo.tipoServicio.includes('Apartado Postal');
+        const cantidadServicio = Number(this.recibo.cantidadServicio) || 1;
+        this.recibo.costoBase = esCantidadServicio ? costoFinal * cantidadServicio : costoFinal;
       } else {
         this.recibo.costoBase = null;
       }
@@ -437,6 +448,7 @@ export class ReciboComponent {
     this.recibo.tipoServicio = '';
     this.recibo.tipoServicioSello = '';
     this.recibo.precioSello = null;
+    this.recibo.cantidadServicio = 1;
     this.busquedaServicio = '';
     this.mostrarListaServicios = false;
     this.servicioSeleccionadoIndex = -1;
@@ -513,6 +525,11 @@ export class ReciboComponent {
     }
     if (!this.recibo.tipoServicio || this.recibo.tipoServicio.trim() === '') {
       this.errores['tipoServicio'] = 'Seleccione un tipo de servicio';
+    }
+    // NUEVA VALIDACIÓN: Verificar cantidad para EMS o Apartado Postal
+    const esCantidadServicio = this.recibo.tipoServicio.includes('EMS') || this.recibo.tipoServicio.includes('Apartado Postal');
+    if (esCantidadServicio && (!this.recibo.cantidadServicio || this.recibo.cantidadServicio < 1)) {
+      this.errores['cantidadServicio'] = 'Ingrese una cantidad válida';
     }
     // NUEVA VALIDACIÓN: Verificar precio de sello si es Sellos Postales o Filatelicos
     const esSellos = this.recibo.tipoServicio.includes('44105') || this.recibo.tipoServicio.includes('45105');
@@ -896,6 +913,7 @@ export class ReciboComponent {
       grupo: 'grupo1',
       precioSello: null,
       cantidadSellos: 1,
+      cantidadServicio: 1,
       departamento: '',
       municipio: ''
     };
@@ -937,6 +955,7 @@ export class ReciboComponent {
       grupo: 'grupo1',
       precioSello: null,
       cantidadSellos: 1,
+      cantidadServicio: 1,
       departamento: '',
       municipio: ''
     };
