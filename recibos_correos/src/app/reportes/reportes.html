@@ -16,6 +16,10 @@
         <i class="bi bi-check-circle-fill me-2"></i>
         {{ mensajeCierreExito }}
       </div>
+      <div *ngIf="mensajeCierreError" class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-x-circle-fill me-2"></i>
+        {{ mensajeCierreError }}
+      </div>
     </div>
   </div>
 

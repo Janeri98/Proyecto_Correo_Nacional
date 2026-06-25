@@ -1,5 +1,17 @@
 {
-  "cierres": [],
-  "diasCerrados": []
-}   
-
+  "cierres": [
+    {
+      "municipio": "Tegucigalpa",
+      "fechaCierre": "2026-06-25T08:22:47.1160303-06:00",
+      "horaCierre": "06:30:00",
+      "totalTransacciones": 1,
+      "fecha": "2026-06-25",
+      "usuario": "Prueba",
+      "totalMonto": 350.2,
+      "departamento": "Francisco Moraz�n"
+    }
+  ],
+  "diasCerrados": [
+    "2026-06-25"
+  ]
+}

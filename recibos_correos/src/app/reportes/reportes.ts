@@ -45,6 +45,7 @@ export class ReportesComponent implements OnInit, OnDestroy {
   diaCerrado: boolean = false;
   cierresDia: any[] = [];
   mensajeCierreExito: string = '';
+  mensajeCierreError: string = '';
   usuarioActualNombre: string = '';
   usuarioActualRol: string = '';
   esAdministrador: boolean = false;
@@ -280,26 +281,35 @@ export class ReportesComponent implements OnInit, OnDestroy {
     // Asegurar que la fecha seleccionada esté definida cuando es reporte diario
     if (this.tipoReporte === 'diario') {
       this.fechaSeleccionada = this.fechaSeleccionada || this.obtenerFechaHoy();
-      // Verificar si esa fecha ya está cerrada
-      this.verificarDiaCerrado();
-      
-      // Pequeña pausa para permitir que verificarDiaCerrado se complete
-      setTimeout(() => {
-        if (this.tipoReporte === 'diario' && this.ventasTabla.length > 0 && !this.diaCerrado) {
-          console.log('Abriendo modal de cierre de día');
-          this.mostrarModalCierreDia = true;
-        } else if (this.ventasTabla.length === 0) {
-          console.log('No hay transacciones');
-          alert('No hay transacciones para cerrar el día.');
-        } else if (this.diaCerrado) {
-          console.log('El día ya está cerrado para la fecha seleccionada');
-          alert('El día seleccionado ya fue cerrado.');
-        } else {
-          console.log('Condición inesperada');
-          alert('No se puede cerrar el día en este momento.');
-        }
-        console.log('=== FIN abrirModalCierreDia ===');
-      }, 100);
+
+      // Consultar días cerrados desde la API y decidir
+      const fechaVerificar = this.fechaSeleccionada;
+      this.reportesService.obtenerDiasCerrados()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((diasCerrados: string[]) => {
+          const estaCerrado = diasCerrados.includes(fechaVerificar);
+          if (this.ventasTabla.length === 0) {
+            console.log('No hay transacciones');
+            this.mensajeCierreError = 'No hay transacciones para cerrar el día.';
+            setTimeout(() => this.mensajeCierreError = '', 5000);
+          } else if (estaCerrado) {
+            console.log('El día ya está cerrado para la fecha seleccionada');
+            this.mensajeCierreError = 'El día seleccionado ya fue cerrado.';
+            setTimeout(() => this.mensajeCierreError = '', 5000);
+          } else if (this.ventasTabla.length > 0 && !estaCerrado) {
+            console.log('Abriendo modal de cierre de día');
+            this.mostrarModalCierreDia = true;
+          } else {
+            console.log('Condición inesperada');
+            this.mensajeCierreError = 'No se puede cerrar el día en este momento.';
+            setTimeout(() => this.mensajeCierreError = '', 5000);
+          }
+          console.log('=== FIN abrirModalCierreDia ===');
+        }, (error) => {
+          console.error('Error comprobando días cerrados:', error);
+          this.mensajeCierreError = 'Error verificando estado del día. Intenta nuevamente.';
+          setTimeout(() => this.mensajeCierreError = '', 5000);
+        });
     } else {
       console.log('No es reporte diario');
       alert('Solo puedes cerrar el día desde el reporte diario.');
@@ -340,19 +350,17 @@ export class ReportesComponent implements OnInit, OnDestroy {
           this.mostrarModalCierreDia = false;
           this.cargarCierresDia();
           this.verificarDiaCerrado();
-          
-          // Mostrar mensaje de éxito
+
+          // Mostrar mensaje de éxito en UI
           this.mensajeCierreExito = `✓ Día ${fechaCierreDia} cerrado correctamente. Total ${this.simboloMoneda}${this.totalMonto.toFixed(2)} en ${this.totalVentas} transacciones.`;
-          alert(`✓ Día cerrado correctamente.\n\nFecha: ${fechaCierreDia}\nHora: ${horaCierre}\nTotal: ${this.simboloMoneda}${this.totalMonto.toFixed(2)}\nTransacciones: ${this.totalVentas}`);
-          
-          // Limpiar mensaje de éxito después de 5 segundos
           setTimeout(() => {
             this.mensajeCierreExito = '';
           }, 5000);
         },
         (error) => {
           console.error('Error al cerrar el día:', error);
-          alert('Error al cerrar el día. Por favor, intenta de nuevo.');
+          this.mensajeCierreError = 'Error al cerrar el día. Por favor, intenta de nuevo.';
+          setTimeout(() => this.mensajeCierreError = '', 5000);
         }
       );
   }
