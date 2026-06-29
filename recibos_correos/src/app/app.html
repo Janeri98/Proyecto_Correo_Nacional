@@ -188,6 +188,7 @@
             id="regDepartamento"
             class="form-control"
             [(ngModel)]="formularioRegistro.departamento"
+            (change)="actualizarMunicipios()"
             [class.error]="erroresLogin['departamento']"
             name="departamento">
             <option value="">Seleccione departamento...</option>
@@ -204,9 +205,10 @@
             class="form-control"
             [(ngModel)]="formularioRegistro.municipio"
             [class.error]="erroresLogin['municipio']"
-            name="municipio">
+            name="municipio"
+            [disabled]="!municipiosDisponibles.length">
             <option value="">Seleccione municipio...</option>
-            <option *ngFor="let municipio of municipios" [value]="municipio">{{ municipio }}</option>
+            <option *ngFor="let municipio of municipiosDisponibles" [value]="municipio">{{ municipio }}</option>
           </select>
           <span class="error-message" *ngIf="erroresLogin['municipio']">{{ erroresLogin['municipio'] }}</span>
         </div>

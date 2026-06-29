@@ -46,8 +46,47 @@ export class AppComponent implements OnInit {
   erroresLogin: { [key: string]: string } = {};
   
   roles = ['Superadministrador', 'Administrador', 'Supervisor', 'Ventanilla'];
-  departamentos = ['Francisco Morazán', 'Atlántida', 'Cortés', 'Choluteca', 'Olancho', 'Santa Bárbara', 'Colón', 'Copán'];
-  municipios = ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choluteca', 'Juticalpa', 'Santa Rosa de Copán', 'Trujillo', 'Gracias'];
+  departamentos = [
+    'Atlántida',
+    'Colón',
+    'Comayagua',
+    'Copán',
+    'Cortés',
+    'Choluteca',
+    'El Paraíso',
+    'Francisco Morazán',
+    'Gracias a Dios',
+    'Intibucá',
+    'Islas de la Bahía',
+    'La Paz',
+    'Lempira',
+    'Ocotepeque',
+    'Olancho',
+    'Santa Bárbara',
+    'Valle',
+    'Yoro'
+  ];
+  municipiosPorDepartamento: { [key: string]: string[] } = {
+    'Atlántida': ['La Ceiba', 'Jutiapa', 'La Masica', 'Mahoma', 'Tela', 'Triunfo de la Cruz'],
+    'Colón': ['Trujillo', 'Balfate', 'Castilla', 'Iriona', 'Limón', 'Sabá', 'Santa Fe', 'Sonaguera'],
+    'Comayagua': ['Comayagua', 'Ajuterique', 'Esquías', 'Humuya', 'La Libertad', 'Lamaní', 'Las Lajas', 'Lejamaní', 'Meámbar', 'Minas de Oro', 'Ojo de Agua', 'San Jerónimo', 'San José de Comayagua', 'Siguatepeque', 'Taulabé', 'Villa de San Antonio'],
+    'Copán': ['Santa Rosa de Copán', 'Cabañas', 'Concepción', 'Corquín', 'Cucuyagua', 'Dolores', 'Dulce Nombre', 'El Paraíso', 'Florida', 'La Jigua', 'Nueva Arcadia', 'San Agustín', 'San Antonio', 'San Jerónimo', 'San José', 'San Juan de Opoa', 'San Nicolás', 'San Pedro', 'Santa Rita', 'Trinidad'],
+    'Cortés': ['San Pedro Sula', 'Choloma', 'La Lima', 'Omoa', 'Puerto Cortés', 'Pimienta', 'Villanueva', 'Saba', 'San Antonio de Cortés', 'San Francisco de Yojoa', 'Santa Cruz de Yojoa', 'San Manuel', 'El Progreso'],
+    'Choluteca': ['Choluteca', 'Apacilagua', 'Concepción de María', 'Damián', 'El Corpus', 'Marcovia', 'Morolica', 'Namasigüe', 'Pespire', 'San Antonio de Flores', 'San Isidro', 'San José', 'San Marcos de Colón', 'San Pedro', 'Santa Ana de Yusguare', 'Santa Cruz de Yojoa'],
+    'El Paraíso': ['Yuscarán', 'Danlí', 'El Paraíso', 'Gualaco', 'Jacaleapa', 'Liure', 'Morocelí', 'Oropolí', 'San Antonio de Flores', 'San Lucas', 'San Matías', 'Sana', 'Soledad', 'Teupasenti', 'Trojes'],
+    'Francisco Morazán': ['Tegucigalpa', 'Cedros', 'El Porvenir', 'Guaimaca', 'La Libertad', 'Lepaterique', 'Maraita', 'Ojo de Agua', 'Reitoca', 'Sabanagrande', 'San Antonio de Oriente', 'San Buenaventura', 'San Ignacio', 'San Juan de Flores', 'Santa Ana', 'Talanga', 'Tatumbla', 'Valle de Ángeles', 'Villa de San Francisco'],
+    'Gracias a Dios': ['Puerto Lempira', 'Brus Laguna', 'Juan Francisco Bulnes', 'Ahuas', 'Palacios'],
+    'Intibucá': ['La Esperanza', 'Camasca', 'Colomoncagua', 'Concepción', 'Dolores', 'Intibucá', 'Jesús de Otoro', 'Magdalena', 'Masaguara', 'San Antonio', 'San Francisco', 'San Isidro', 'San Juan', 'San Marcos de la Sierra', 'Santa Lucía', 'Yamaranguila'],
+    'Islas de la Bahía': ['Roatán', 'Útila', 'Guanaja'],
+    'La Paz': ['La Paz', 'Cabañas', 'Cane', 'Chinacla', 'Guajiquiro', 'Lauterique', 'Marcala', 'Mercedes de Oriente', 'San Antonio del Norte', 'San José', 'San Juan', 'Santa Ana', 'Santa Elena', 'Santa María', 'Santiago de Puringla', 'Yarula'],
+    'Lempira': ['Gracias', 'Belén', 'Cololaca', 'Concepción', 'Erandique', 'Gualcince', 'Guanajiquilí', 'La Campa', 'La Iguala', 'La Unión', 'Las Flores', 'La Venta', 'La Virtud', 'Lepaera', 'Mapulaca', 'Nuevo Ocotepeque', 'San Andrés', 'San Francisco', 'San Juan Guarita', 'San Manuel Colohete', 'San Rafael', 'San Sebastián', 'Santa Elena', 'Santa Rosa de Copán', 'Talgua', 'Virginia'],
+    'Ocotepeque': ['Nueva Ocotepeque', 'Belén Gualcho', 'Concepción', 'Dolores', 'Fraternidad', 'La Encarnación', 'San Fernando', 'San Francisco del Valle', 'San Jorge', 'San Marcos', 'Santa Fe', 'Sinuapa'],
+    'Olancho': ['Juticalpa', 'Catacamas', 'Campamento', 'Dulce Nombre de Culmí', 'El Paraíso', 'Esquipulas del Norte', 'Gualaco', 'Guata', 'Jano', 'La Unión', 'Manto', 'Patuca', 'Salamá', 'San Esteban', 'San Francisco de Becerra', 'San Isidro', 'Silca', 'Yocón'],
+    'Santa Bárbara': ['Santa Bárbara', 'Alfaro', 'Chinda', 'Concepción del Norte', 'Concepción del Sur', 'El Níspero', 'Gualala', 'Ilama', 'Macuelizo', 'Naranjito', 'Nueva Celilaca', 'Nueva Frontera', 'Nueva Ocotepeque', 'Petoa', 'Quimistán', 'San Francisco de Ojuera', 'San José de Colinas', 'San Luis', 'San Nicolás', 'Santa Rita', 'Trinidad'],
+    'Valle': ['Nacaome', 'Amapala', 'Aramecina', 'Caridad', 'Goascorán', 'Langue', 'San Francisco de Coray', 'San Lorenzo', 'Tengö'],
+    'Yoro': ['Yoro', 'El Progreso', 'Olanchito', 'Chamelecón', 'El Negrito', 'El Negrito', 'Jutiapa', 'Mocoa', 'Morazán', 'Olanchito', 'Pimienta', 'Sulaco', 'Victoria']
+  };
+  municipiosDisponibles: string[] = [];
   
   apiUrl = 'http://localhost:3000/api/auth';
 
@@ -92,7 +131,17 @@ export class AppComponent implements OnInit {
       contrasena: '',
       confirmarContrasena: ''
     };
+    this.municipiosDisponibles = [];
     this.erroresLogin = {};
+  }
+
+  actualizarMunicipios() {
+    if (this.formularioRegistro.departamento) {
+      this.municipiosDisponibles = this.municipiosPorDepartamento[this.formularioRegistro.departamento] || [];
+    } else {
+      this.municipiosDisponibles = [];
+    }
+    this.formularioRegistro.municipio = '';
   }
 
   validarRegistro(): boolean {
